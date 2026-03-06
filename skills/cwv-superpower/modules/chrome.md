@@ -1,0 +1,146 @@
+## Core Rules
+Three non-negotiable rules:
+
+1. **RUM found the issue — it IS there.** If Chrome shows fast timing on the dev machine, that's expected. The dev machine is faster than a median mobile user on a mid-range Android on a 3G connection. The trace shows the SEQUENCE and STRUCTURE of the problem, not the user's timing. Never conclude "the issue doesn't exist" based on lab results.
+
+2. **Never say "I couldn't reproduce the issue."** The issue is confirmed by hundreds or thousands of real user sessions. Chrome is here to show WHY it happens, not IF it happens.
+
+3. **Fuzzy element matching — two steps:**
+   - Step 1: Try the exact CSS selector from CoreDash in the DOM.
+   - Step 2: If not found, find the most likely element that matches what the selector describes — by position, role, and type. A selector like `section.hero > img.css-x7k2m3` means "the image inside the hero section." Find that image regardless of class names. Class names may be generated, minified, or changed between builds.
+
+## Trace Setup
+- **Mobile analysis (default):** Device emulation (mobile viewport, e.g. Moto G Power), Network: Fast 3G throttling, CPU: 4x slowdown. These approximate a mid-range mobile device on a typical mobile network.
+- **Desktop analysis:** No throttling, no CPU slowdown, standard viewport.
+- **Recording:** Start recording before navigation. Navigate to target URL. For LCP/CLS: wait for page load to complete (load event + 2 seconds for late shifts). For INP: after page load, trigger the specific interaction identified by `inpel` attribution.
+
+## LCP Trace Investigation
+
+Guided by the bottleneck phase from the diagnosis module. Focus on the bottleneck — don't investigate all phases.
+
+### If bottleneck is TTFB
+1. In the Network panel, find the initial HTML document request
+2. Measure time from navigation start to first byte received (the "Waiting for server response" bar)
+3. Check for redirect entries in the timing breakdown — each 301/302 hop adds a full round trip
+4. Note the server response time from the request timing waterfall
+5. Compare: is the delay in DNS, connection, TLS, or server processing?
+
+### If bottleneck is LOADDELAY
+1. Find the LCP resource (image, font, or video) in the Network waterfall
+2. Measure the gap between HTML first byte arrival and when the LCP resource request starts — this gap IS the load delay
+3. Look at what fills that gap:
+   - Are there render-blocking `<script>` tags in `<head>` delaying HTML parsing?
+   - Is the resource referenced in CSS or loaded via JavaScript instead of directly in HTML `<img>` tags?
+   - Are other lower-priority resources being fetched first?
+4. Check the HTML source: is there a `<link rel="preload">` for this resource?
+5. Check the LCP element: does it have `fetchpriority="high"`? Does it have `loading="lazy"` (harmful)?
+6. If the resource is a CSS `background-image`, the preload scanner cannot discover it — this is the root cause
+
+### If bottleneck is LOADTIME
+1. Find the LCP resource in the Network panel — click it to see the timing breakdown
+2. Note the download duration (Content Download time), not just total time
+3. Check response headers:
+   - File size (`Content-Length`) and transferred size (with compression)
+   - Format (`Content-Type` — JPEG/PNG vs WebP/AVIF?)
+   - CDN cache status (`x-cache`, `cf-cache-status`, `x-vercel-cache`, `age`)
+   - Compression (`Content-Encoding: br` or `gzip`)
+4. Look for network contention: are many other resources downloading simultaneously, competing for bandwidth?
+5. Check the Protocol column — is the connection using HTTP/2 or HTTP/3?
+
+### If bottleneck is RENDERDELAY
+1. In the Performance panel, find the LCP paint event (marked in the Timings row)
+2. Find when the LCP resource finished downloading in the Network section
+3. Measure the gap between resource complete and LCP paint — this gap IS the render delay
+4. In the flamechart, look for long tasks (yellow blocks > 50ms) between resource completion and paint:
+   - Script evaluation of large JS bundles?
+   - Style recalculation from large CSS files?
+   - JavaScript toggling element visibility (`display`, `opacity`)?
+5. Check if render-blocking stylesheets or scripts are still loading after the LCP resource finishes
+6. For text LCP: check if font loading is causing the delay (FOIT)
+
+## INP Trace Investigation
+
+1. Wait for page to fully load (load event fires)
+2. Start recording in the Performance panel (or mark the timeline)
+3. Trigger the exact interaction identified by `inpel` — click the button, type in the input, tap the link
+4. Stop recording after the visual update completes
+
+Then investigate based on the bottleneck phase:
+
+### If bottleneck is INPUTDELAY
+1. In the flamechart, find the interaction event marker (the click/keypress event)
+2. Look at main thread activity IMMEDIATELY BEFORE the event handler starts executing
+3. Identify the long task(s) blocking the thread:
+   - Which script is running? Match the filename against the `lurl` from CoreDash
+   - Is it a timer callback (`setTimeout`/`setInterval`)? Script evaluation? Framework hydration?
+4. Measure the time from the interaction marker to when the event handler actually starts
+5. If the diagnosis module reported load state `loading`/`dom-interactive`, look specifically for script evaluation tasks (the page was still booting up when the user interacted)
+
+### If bottleneck is PROCESSING
+1. Find the event handler function(s) in the flamechart — they run immediately after the interaction event
+2. Measure total handler execution time
+3. Look inside the handler for:
+   - Purple "Layout" bars = forced reflow / layout thrashing (DOM read after DOM write)
+   - Long JavaScript execution blocks (heavy computation, large array operations)
+   - Synchronous API calls or large `localStorage` operations
+   - Framework re-render cycles (React reconciliation, Vue patching) — note how many components re-rendered
+4. Identify the single function call that takes the most time within the handler
+
+### If bottleneck is PRESENTATION
+1. Look at rendering activity AFTER the event handler completes
+2. Find "Recalculate Style", "Layout", and "Paint" blocks — measure their combined duration
+3. Check DOM size: run `document.querySelectorAll('*').length` in the Console — values >1,500 are a concern
+4. Look for non-composited animations triggered by the interaction (check Animations panel)
+5. Check if `content-visibility: auto` on off-screen sections could reduce the layout scope
+
+## CLS Trace Investigation
+
+In the Performance panel, look for red "Layout Shift" markers in the Experience row. Click each to see which element moved and the shift score. Then investigate based on the cause pattern from the diagnosis module:
+
+### For image/video without dimensions
+1. Find the element in the DOM (Elements panel)
+2. Confirm it has no `width` and `height` HTML attributes
+3. Check for CSS `aspect-ratio` on the element or its container
+4. Screenshot before the resource loads (space collapsed) and after (space expanded)
+
+### For font swap (FOUT)
+1. Find the web font file(s) in the Network waterfall
+2. Note when the font finishes loading relative to First Contentful Paint
+3. Watch for the text reflow moment — screenshot before (fallback font) and after (web font)
+4. Compare the visual difference to gauge the metric mismatch between fonts
+
+### For injected content
+1. In the Performance timeline, find the DOM insertion event that causes the shift
+2. Identify which script injected the content (trace the call stack)
+3. Note the timing: how long after initial paint does the injection happen?
+4. Screenshot before and after the injection to confirm what shifted
+
+### For late-loading resource
+1. Find the late-loading resource in the Network waterfall
+2. Note its completion time relative to First Contentful Paint
+3. Trace the cascade: when it loads, which elements shift and by how much?
+4. Note whether the shift happens above or below the fold
+
+### For CSS animation
+1. Open the Animations panel and look for non-composited animations
+2. In the Performance panel, look for repeated "Layout" recalculations during animation frames
+3. Identify which CSS properties are being animated (look for `top`, `left`, `width`, `height`, `margin`, `padding`)
+
+## Evidence Capture
+List what to capture for the report:
+1. **Filmstrip** — 10-15 sequential screenshots covering navigation start through LCP (or through the layout shift for CLS).
+2. **Waterfall screenshot** — network waterfall with LCP resource highlighted/annotated.
+3. **Flamechart screenshot** (INP only) — main thread flamechart centered on the interaction, bottleneck area highlighted.
+4. **Shift screenshots** (CLS only) — before and after showing the layout change.
+5. **Element screenshot** — the identified element highlighted in the viewport.
+
+## Output format
+```
+Chrome trace findings:
+- URL visited: [URL]
+- Emulation: [mobile Fast 3G 4x CPU / desktop no throttling]
+- Bottleneck phase confirmed: [PHASE] — [what Chrome showed]
+- Root cause evidence: [2-3 sentences describing what was seen]
+- Key measurement: [specific timing or gap that proves the bottleneck]
+- Evidence captured: [list of screenshots/filmstrip assets]
+```

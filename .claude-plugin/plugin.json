@@ -1,0 +1,13 @@
+{
+  "name": "cwv-superpowers",
+  "description": "Core Web Vitals diagnosis and fixing skills for Claude Code — powered by CoreDash real user monitoring",
+  "version": "1.0.0",
+  "author": {
+    "name": "CoreWebVitals",
+    "url": "https://coredash.app"
+  },
+  "homepage": "https://github.com/corewebvitals/cwv-superpowers",
+  "repository": "https://github.com/corewebvitals/cwv-superpowers",
+  "license": "MIT",
+  "keywords": ["core-web-vitals", "cwv", "lcp", "inp", "cls", "performance", "rum", "coredash", "chrome"]
+}

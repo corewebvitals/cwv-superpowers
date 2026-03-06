@@ -1,0 +1,876 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Core Web Vitals Report</title>
+<style>
+  /* ===== Reset & Base ===== */
+  *, *::before, *::after {
+    box-sizing: border-box;
+    margin: 0;
+    padding: 0;
+  }
+
+  html {
+    font-size: 16px;
+    -webkit-text-size-adjust: 100%;
+  }
+
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+    color: #1a1a2e;
+    background: #f4f5f7;
+    line-height: 1.6;
+    padding: 0;
+    margin: 0;
+  }
+
+  /* ===== Layout ===== */
+  .report-wrapper {
+    max-width: 960px;
+    margin: 0 auto;
+    padding: 24px 20px 48px;
+  }
+
+  /* ===== Header ===== */
+  .report-header {
+    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
+    color: #fff;
+    padding: 36px 32px 28px;
+    border-radius: 12px;
+    margin-bottom: 28px;
+    position: relative;
+  }
+
+  .report-header h1 {
+    font-size: 1.75rem;
+    font-weight: 700;
+    letter-spacing: -0.02em;
+    margin-bottom: 6px;
+  }
+
+  .report-header .subtitle {
+    font-size: 0.95rem;
+    color: #a0aec0;
+    line-height: 1.5;
+  }
+
+  .report-header .subtitle a {
+    color: #63b3ed;
+    text-decoration: none;
+  }
+
+  .report-header .powered-by {
+    position: absolute;
+    bottom: 12px;
+    right: 20px;
+    font-size: 0.7rem;
+    color: #5a6a8a;
+    letter-spacing: 0.02em;
+  }
+
+  /* ===== Section Cards ===== */
+  .section-card {
+    background: #fff;
+    border-radius: 10px;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
+    margin-bottom: 20px;
+    overflow: hidden;
+  }
+
+  .section-card > .section-body {
+    padding: 24px 28px;
+  }
+
+  /* ===== Details / Collapsible ===== */
+  details.section-card {
+    border: none;
+  }
+
+  details.section-card > summary {
+    padding: 18px 28px;
+    font-size: 1.05rem;
+    font-weight: 600;
+    cursor: pointer;
+    list-style: none;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    user-select: none;
+    border-bottom: 1px solid transparent;
+    transition: background 0.15s ease;
+  }
+
+  details.section-card > summary::-webkit-details-marker {
+    display: none;
+  }
+
+  details.section-card > summary::before {
+    content: "\25B6";
+    font-size: 0.65rem;
+    transition: transform 0.2s ease;
+    display: inline-block;
+    color: #718096;
+  }
+
+  details[open].section-card > summary::before {
+    transform: rotate(90deg);
+  }
+
+  details.section-card > summary:hover {
+    background: #f9fafb;
+  }
+
+  details[open].section-card > summary {
+    border-bottom: 1px solid #edf0f4;
+  }
+
+  details.section-card > .section-body {
+    padding: 24px 28px;
+  }
+
+  /* ===== Section Labels ===== */
+  .section-label {
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.08em;
+    color: #a0aec0;
+    margin-bottom: 4px;
+  }
+
+  /* ===== Executive Summary ===== */
+  .executive-summary p {
+    font-size: 1rem;
+    color: #2d3748;
+    line-height: 1.7;
+  }
+
+  /* ===== Metric Cards Grid ===== */
+  .metric-cards-grid {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 16px;
+  }
+
+  .metric-card {
+    flex: 1 1 200px;
+    min-width: 200px;
+    max-width: 100%;
+    background: #fff;
+    border: 1px solid #e2e8f0;
+    border-radius: 10px;
+    padding: 20px;
+    position: relative;
+    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+  }
+
+  .metric-card:hover {
+    box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+  }
+
+  .metric-card[data-rating="good"] {
+    border-top: 3px solid #0cce6b;
+  }
+
+  .metric-card[data-rating="needs-improvement"] {
+    border-top: 3px solid #ffa400;
+  }
+
+  .metric-card[data-rating="poor"] {
+    border-top: 3px solid #ff4e42;
+  }
+
+  .metric-card h3 {
+    font-size: 0.85rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.06em;
+    color: #718096;
+    margin-bottom: 6px;
+  }
+
+  .metric-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: #1a1a2e;
+    line-height: 1.2;
+    margin-bottom: 8px;
+  }
+
+  .metric-unit {
+    font-size: 0.85rem;
+    font-weight: 500;
+    color: #a0aec0;
+    margin-left: 2px;
+  }
+
+  /* ===== Rating Badges ===== */
+  .rating-badge {
+    display: inline-block;
+    padding: 3px 10px;
+    border-radius: 20px;
+    font-size: 0.72rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+    color: #fff;
+    margin-bottom: 14px;
+  }
+
+  .rating-badge.good {
+    background: #0cce6b;
+  }
+
+  .rating-badge.needs-improvement {
+    background: #ffa400;
+  }
+
+  .rating-badge.poor {
+    background: #ff4e42;
+  }
+
+  /* ===== Distribution Bar ===== */
+  .distribution-bar {
+    display: flex;
+    height: 8px;
+    border-radius: 4px;
+    overflow: hidden;
+    background: #edf0f4;
+    margin-bottom: 6px;
+  }
+
+  .dist-good {
+    background: #0cce6b;
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+
+  .dist-improve {
+    background: #ffa400;
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+
+  .dist-poor {
+    background: #ff4e42;
+    height: 100%;
+    transition: width 0.4s ease;
+  }
+
+  .distribution-labels {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.68rem;
+    color: #a0aec0;
+    margin-bottom: 10px;
+  }
+
+  /* ===== Trend ===== */
+  .trend {
+    font-size: 0.78rem;
+    font-weight: 500;
+    color: #718096;
+  }
+
+  .trend.improving {
+    color: #0cce6b;
+  }
+
+  .trend.worsening {
+    color: #ff4e42;
+  }
+
+  .trend.stable {
+    color: #a0aec0;
+  }
+
+  /* ===== Breakdown Waterfall ===== */
+  .breakdown-container {
+    margin-top: 4px;
+  }
+
+  .breakdown-label {
+    font-size: 0.85rem;
+    font-weight: 600;
+    color: #4a5568;
+    margin-bottom: 10px;
+  }
+
+  .breakdown-bar {
+    display: flex;
+    height: 40px;
+    border-radius: 6px;
+    overflow: hidden;
+    background: #edf0f4;
+    margin-bottom: 8px;
+  }
+
+  .breakdown-segment {
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    flex-direction: column;
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 600;
+    line-height: 1.3;
+    padding: 2px 6px;
+    min-width: 0;
+    overflow: hidden;
+    white-space: nowrap;
+    text-overflow: ellipsis;
+    transition: width 0.4s ease;
+  }
+
+  .breakdown-segment .phase-name {
+    font-size: 0.6rem;
+    font-weight: 500;
+    opacity: 0.9;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .breakdown-segment .phase-value {
+    font-size: 0.75rem;
+    font-weight: 700;
+  }
+
+  /* Phase colors */
+  .phase-ttfb       { background: #4299e1; }
+  .phase-loaddelay  { background: #667eea; }
+  .phase-loadtime   { background: #9f7aea; }
+  .phase-renderdelay{ background: #ed64a6; }
+  .phase-inputdelay { background: #4299e1; }
+  .phase-processing { background: #9f7aea; }
+  .phase-presentation { background: #ed64a6; }
+
+  /* Bottleneck highlight */
+  .breakdown-segment.bottleneck {
+    outline: 3px solid #1a1a2e;
+    outline-offset: -3px;
+    position: relative;
+    z-index: 1;
+  }
+
+  .breakdown-legend {
+    display: flex;
+    flex-wrap: wrap;
+    gap: 12px;
+    margin-top: 6px;
+  }
+
+  .legend-item {
+    display: flex;
+    align-items: center;
+    gap: 5px;
+    font-size: 0.75rem;
+    color: #4a5568;
+  }
+
+  .legend-swatch {
+    width: 10px;
+    height: 10px;
+    border-radius: 2px;
+    flex-shrink: 0;
+  }
+
+  .legend-item.is-bottleneck .legend-swatch {
+    outline: 2px solid #1a1a2e;
+    outline-offset: 1px;
+  }
+
+  /* ===== Attribution ===== */
+  .attribution-table {
+    width: 100%;
+    border-collapse: collapse;
+    font-size: 0.88rem;
+  }
+
+  .attribution-table th {
+    text-align: left;
+    font-weight: 600;
+    color: #718096;
+    padding: 8px 12px 8px 0;
+    border-bottom: 1px solid #edf0f4;
+    white-space: nowrap;
+    width: 140px;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+
+  .attribution-table td {
+    padding: 8px 0;
+    border-bottom: 1px solid #edf0f4;
+    color: #2d3748;
+    word-break: break-word;
+  }
+
+  .attribution-table code {
+    background: #edf2f7;
+    padding: 2px 6px;
+    border-radius: 4px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.82rem;
+    color: #c53030;
+  }
+
+  /* ===== Code Blocks ===== */
+  pre {
+    background: #f7f8fa;
+    border: 1px solid #e2e8f0;
+    border-radius: 8px;
+    padding: 16px 20px;
+    overflow-x: auto;
+    margin: 12px 0;
+    line-height: 1.55;
+  }
+
+  pre code {
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.82rem;
+    color: #2d3748;
+    background: none;
+    padding: 0;
+    border-radius: 0;
+  }
+
+  /* ===== Prose inside sections ===== */
+  .section-body p {
+    font-size: 0.95rem;
+    color: #2d3748;
+    line-height: 1.7;
+    margin-bottom: 10px;
+  }
+
+  .section-body p:last-child {
+    margin-bottom: 0;
+  }
+
+  .section-body ul,
+  .section-body ol {
+    margin: 10px 0;
+    padding-left: 22px;
+  }
+
+  .section-body li {
+    font-size: 0.95rem;
+    color: #2d3748;
+    line-height: 1.7;
+    margin-bottom: 4px;
+  }
+
+  .section-body strong {
+    font-weight: 600;
+    color: #1a1a2e;
+  }
+
+  /* ===== Footer ===== */
+  .report-footer {
+    text-align: center;
+    padding: 32px 20px 16px;
+    font-size: 0.78rem;
+    color: #a0aec0;
+    line-height: 1.8;
+  }
+
+  .report-footer .footer-brand {
+    font-weight: 600;
+    color: #718096;
+  }
+
+  .report-footer .rum-note {
+    margin-top: 12px;
+    padding: 12px 16px;
+    background: #fff;
+    border: 1px dashed #cbd5e0;
+    border-radius: 8px;
+    font-size: 0.75rem;
+    color: #718096;
+    max-width: 640px;
+    margin-left: auto;
+    margin-right: auto;
+    line-height: 1.6;
+  }
+
+  .report-footer .rum-note code {
+    background: #edf2f7;
+    padding: 1px 5px;
+    border-radius: 3px;
+    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+    font-size: 0.72rem;
+  }
+
+  /* ===== Responsive ===== */
+  @media (max-width: 640px) {
+    .report-wrapper {
+      padding: 12px 10px 32px;
+    }
+
+    .report-header {
+      padding: 24px 20px 22px;
+      border-radius: 8px;
+    }
+
+    .report-header h1 {
+      font-size: 1.35rem;
+    }
+
+    .report-header .powered-by {
+      position: static;
+      display: block;
+      margin-top: 10px;
+    }
+
+    .section-card > .section-body,
+    details.section-card > .section-body {
+      padding: 16px 18px;
+    }
+
+    details.section-card > summary {
+      padding: 14px 18px;
+      font-size: 0.95rem;
+    }
+
+    .metric-cards-grid {
+      gap: 12px;
+    }
+
+    .metric-card {
+      flex: 1 1 100%;
+    }
+
+    .metric-value {
+      font-size: 1.6rem;
+    }
+
+    .breakdown-segment .phase-name {
+      font-size: 0.5rem;
+    }
+
+    .breakdown-segment .phase-value {
+      font-size: 0.65rem;
+    }
+
+    pre {
+      padding: 12px 14px;
+    }
+
+    pre code {
+      font-size: 0.75rem;
+    }
+  }
+
+  /* ===== Print ===== */
+  @media print {
+    body {
+      background: #fff;
+      color: #000;
+      font-size: 11pt;
+    }
+
+    .report-wrapper {
+      max-width: 100%;
+      padding: 0;
+    }
+
+    .report-header {
+      background: #1a1a2e !important;
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+      break-after: avoid;
+    }
+
+    .section-card {
+      box-shadow: none;
+      border: 1px solid #ddd;
+      break-inside: avoid;
+    }
+
+    details.section-card {
+      border: 1px solid #ddd;
+    }
+
+    details.section-card > summary {
+      font-size: 0.95rem;
+    }
+
+    /* Force all details open for print */
+    details.section-card {
+      open: true;
+    }
+
+    details.section-card > .section-body {
+      display: block !important;
+    }
+
+    .metric-card {
+      border: 1px solid #ddd;
+      break-inside: avoid;
+    }
+
+    .metric-card[data-rating="good"] {
+      border-top-color: #0cce6b;
+    }
+
+    .metric-card[data-rating="needs-improvement"] {
+      border-top-color: #ffa400;
+    }
+
+    .metric-card[data-rating="poor"] {
+      border-top-color: #ff4e42;
+    }
+
+    .distribution-bar,
+    .dist-good,
+    .dist-improve,
+    .dist-poor,
+    .breakdown-segment,
+    .rating-badge {
+      -webkit-print-color-adjust: exact;
+      print-color-adjust: exact;
+    }
+
+    .report-footer .rum-note {
+      border: 1px solid #ccc;
+    }
+
+    pre {
+      border: 1px solid #ddd;
+      white-space: pre-wrap;
+      word-wrap: break-word;
+    }
+  }
+</style>
+</head>
+<body>
+
+<div class="report-wrapper">
+
+  <!-- ===== HEADER ===== -->
+  <header class="report-header">
+    <h1>Core Web Vitals Report</h1>
+    <!-- SECTION:SUBTITLE -->
+    <div class="subtitle">
+      <strong>URL:</strong> <a href="https://example.com/page">https://example.com/page</a><br>
+      <strong>Generated:</strong> March 6, 2026
+    </div>
+    <!-- /SECTION:SUBTITLE -->
+    <div class="powered-by">Powered by CoreDash</div>
+  </header>
+
+  <!-- ===== EXECUTIVE SUMMARY ===== -->
+  <div class="section-card">
+    <div class="section-body executive-summary">
+      <div class="section-label">Executive Summary</div>
+      <!-- SECTION:EXECUTIVE_SUMMARY -->
+      <p>Replace with executive summary.</p>
+      <!-- /SECTION:EXECUTIVE_SUMMARY -->
+    </div>
+  </div>
+
+  <!-- ===== METRIC CARDS ===== -->
+  <div class="section-card">
+    <div class="section-body">
+      <div class="section-label">Core Web Vitals</div>
+      <!-- SECTION:METRIC_CARDS -->
+      <!-- Agent: Replace with metric card HTML. One card per metric. -->
+      <div class="metric-cards-grid">
+
+        <div class="metric-card" data-rating="poor">
+          <h3>LCP</h3>
+          <div class="metric-value">3,820<span class="metric-unit">ms</span></div>
+          <span class="rating-badge poor">Poor</span>
+          <div class="distribution-bar">
+            <div class="dist-good" style="width: 32%"></div>
+            <div class="dist-improve" style="width: 28%"></div>
+            <div class="dist-poor" style="width: 40%"></div>
+          </div>
+          <div class="distribution-labels">
+            <span>32% good</span><span>28% NI</span><span>40% poor</span>
+          </div>
+          <div class="trend worsening">&uarr; +12% over 7 days</div>
+        </div>
+
+        <div class="metric-card" data-rating="good">
+          <h3>INP</h3>
+          <div class="metric-value">142<span class="metric-unit">ms</span></div>
+          <span class="rating-badge good">Good</span>
+          <div class="distribution-bar">
+            <div class="dist-good" style="width: 78%"></div>
+            <div class="dist-improve" style="width: 14%"></div>
+            <div class="dist-poor" style="width: 8%"></div>
+          </div>
+          <div class="distribution-labels">
+            <span>78% good</span><span>14% NI</span><span>8% poor</span>
+          </div>
+          <div class="trend improving">&darr; -5% over 7 days</div>
+        </div>
+
+        <div class="metric-card" data-rating="needs-improvement">
+          <h3>CLS</h3>
+          <div class="metric-value">0.18<span class="metric-unit"></span></div>
+          <span class="rating-badge needs-improvement">Needs Improvement</span>
+          <div class="distribution-bar">
+            <div class="dist-good" style="width: 44%"></div>
+            <div class="dist-improve" style="width: 36%"></div>
+            <div class="dist-poor" style="width: 20%"></div>
+          </div>
+          <div class="distribution-labels">
+            <span>44% good</span><span>36% NI</span><span>20% poor</span>
+          </div>
+          <div class="trend stable">&rarr; flat over 7 days</div>
+        </div>
+
+      </div>
+      <!-- /SECTION:METRIC_CARDS -->
+    </div>
+  </div>
+
+  <!-- ===== BREAKDOWN WATERFALL ===== -->
+  <details class="section-card" open>
+    <summary>Metric Breakdown</summary>
+    <div class="section-body">
+      <!-- SECTION:BREAKDOWN -->
+      <!-- Agent: Replace with breakdown bar. Highlight the bottleneck phase. -->
+      <div class="breakdown-container">
+        <div class="breakdown-label">LCP Breakdown (p75 = 3,820 ms)</div>
+        <div class="breakdown-bar">
+          <div class="breakdown-segment phase-ttfb" style="width: 21%">
+            <span class="phase-name">TTFB</span>
+            <span class="phase-value">800 ms</span>
+          </div>
+          <div class="breakdown-segment phase-loaddelay bottleneck" style="width: 39%">
+            <span class="phase-name">Load Delay</span>
+            <span class="phase-value">1,500 ms</span>
+          </div>
+          <div class="breakdown-segment phase-loadtime" style="width: 26%">
+            <span class="phase-name">Load Time</span>
+            <span class="phase-value">1,000 ms</span>
+          </div>
+          <div class="breakdown-segment phase-renderdelay" style="width: 14%">
+            <span class="phase-name">Render Delay</span>
+            <span class="phase-value">520 ms</span>
+          </div>
+        </div>
+        <div class="breakdown-legend">
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #4299e1;"></span> TTFB
+          </div>
+          <div class="legend-item is-bottleneck">
+            <span class="legend-swatch" style="background: #667eea;"></span> Load Delay (bottleneck)
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #9f7aea;"></span> Load Time
+          </div>
+          <div class="legend-item">
+            <span class="legend-swatch" style="background: #ed64a6;"></span> Render Delay
+          </div>
+        </div>
+      </div>
+      <!-- /SECTION:BREAKDOWN -->
+    </div>
+  </details>
+
+  <!-- ===== ATTRIBUTION ===== -->
+  <details class="section-card" open>
+    <summary>Attribution</summary>
+    <div class="section-body">
+      <!-- SECTION:ATTRIBUTION -->
+      <!-- Agent: Replace with attribution details. -->
+      <table class="attribution-table">
+        <tr>
+          <th>Element</th>
+          <td><code>&lt;img src="/hero.jpg" ...&gt;</code></td>
+        </tr>
+        <tr>
+          <th>Resource URL</th>
+          <td>https://example.com/hero.jpg</td>
+        </tr>
+        <tr>
+          <th>Resource Type</th>
+          <td>Image</td>
+        </tr>
+        <tr>
+          <th>Priority</th>
+          <td>Low (not preloaded, not fetchpriority="high")</td>
+        </tr>
+        <tr>
+          <th>Context</th>
+          <td>The LCP element is a hero image loaded without a preload hint. The browser discovers it late because it is referenced only in CSS or lazy-loaded markup.</td>
+        </tr>
+      </table>
+      <!-- /SECTION:ATTRIBUTION -->
+    </div>
+  </details>
+
+  <!-- ===== ROOT CAUSE ===== -->
+  <details class="section-card" open>
+    <summary>Root Cause</summary>
+    <div class="section-body">
+      <!-- SECTION:ROOT_CAUSE -->
+      <!-- Agent: Replace with root cause analysis. -->
+      <p>Replace with the combined root cause statement explaining why this metric is underperforming.</p>
+      <!-- /SECTION:ROOT_CAUSE -->
+    </div>
+  </details>
+
+  <!-- ===== RECOMMENDED FIX ===== -->
+  <details class="section-card" open>
+    <summary>Recommended Fix</summary>
+    <div class="section-body">
+      <!-- SECTION:RECOMMENDED_FIX -->
+      <!-- Agent: Replace with specific fix and code example. -->
+      <p>Replace with a specific, actionable fix recommendation.</p>
+      <pre><code>&lt;!-- Example: Add a preload hint for the LCP image --&gt;
+&lt;link rel="preload" as="image" href="/hero.jpg" fetchpriority="high"&gt;</code></pre>
+      <!-- /SECTION:RECOMMENDED_FIX -->
+    </div>
+  </details>
+
+  <!-- ===== HOW TO VERIFY ===== -->
+  <details class="section-card">
+    <summary>How to Verify</summary>
+    <div class="section-body">
+      <!-- SECTION:HOW_TO_VERIFY -->
+      <!-- Agent: Replace with verification steps. -->
+      <p>Replace with instructions on what to check in CoreDash after the fix ships.</p>
+      <!-- /SECTION:HOW_TO_VERIFY -->
+    </div>
+  </details>
+
+  <!-- ===== FOOTER ===== -->
+  <footer class="report-footer">
+    <div class="footer-brand">Generated by CWV Superpower</div>
+    <div>Data source: CoreDash Real User Monitoring</div>
+    <div class="rum-note">
+      This report is based on RUM data only. A full report with Chrome trace visuals (filmstrip, waterfall, flamechart)
+      is available when running with <code>claude --chrome</code>.
+    </div>
+  </footer>
+
+</div>
+
+<script>
+  // Force all details elements open when printing
+  window.addEventListener('beforeprint', function() {
+    document.querySelectorAll('details.section-card').forEach(function(el) {
+      if (!el.hasAttribute('open')) {
+        el.setAttribute('open', '');
+        el.dataset.closedBeforePrint = 'true';
+      }
+    });
+  });
+
+  window.addEventListener('afterprint', function() {
+    document.querySelectorAll('details.section-card[data-closed-before-print]').forEach(function(el) {
+      el.removeAttribute('open');
+      delete el.dataset.closedBeforePrint;
+    });
+  });
+</script>
+
+</body>
+</html>

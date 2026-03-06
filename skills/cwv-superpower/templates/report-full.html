@@ -1,0 +1,1169 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Core Web Vitals Report</title>
+<style>
+/* ============================================================
+   CWV Superpower — Full Report Styles
+   Self-contained, no external dependencies
+   ============================================================ */
+
+/* --- Reset & Base --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+:root {
+  --green: #0cce6b;
+  --orange: #ffa400;
+  --red: #ff4e42;
+  --green-bg: #e6faf0;
+  --orange-bg: #fff5e0;
+  --red-bg: #ffe8e6;
+  --green-border: #0cce6b;
+  --orange-border: #ffa400;
+  --red-border: #ff4e42;
+  --gray-50: #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+  --radius: 8px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
+  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+}
+
+body {
+  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  line-height: 1.6;
+  color: var(--gray-800);
+  background: var(--gray-50);
+  padding: 0;
+  margin: 0;
+}
+
+.report-container {
+  max-width: 900px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+/* --- Header --- */
+.report-header {
+  text-align: center;
+  padding: 40px 20px 32px;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-700) 100%);
+  color: #fff;
+  border-radius: var(--radius);
+}
+
+.report-header h1 {
+  font-size: 28px;
+  font-weight: 700;
+  margin-bottom: 8px;
+  letter-spacing: -0.5px;
+}
+
+.report-header .subtitle {
+  font-size: 14px;
+  color: var(--gray-300);
+  margin-bottom: 4px;
+}
+
+.report-header .powered-by {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 12px;
+}
+
+/* --- Sections --- */
+.section {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gray-100);
+}
+
+/* --- Executive Summary --- */
+.executive-summary {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--gray-700);
+}
+
+.executive-summary strong {
+  color: var(--gray-900);
+}
+
+/* --- Metric Cards --- */
+.metric-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  margin-bottom: 0;
+}
+
+.metric-card {
+  flex: 1 1 200px;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 20px;
+  box-shadow: var(--shadow);
+  min-width: 180px;
+}
+
+.metric-card.rating-good { border-left: 4px solid var(--green); }
+.metric-card.rating-needs-improvement { border-left: 4px solid var(--orange); }
+.metric-card.rating-poor { border-left: 4px solid var(--red); }
+
+.metric-name {
+  font-size: 12px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  color: var(--gray-500);
+  margin-bottom: 4px;
+}
+
+.metric-value {
+  font-size: 32px;
+  font-weight: 700;
+  color: var(--gray-900);
+  line-height: 1.2;
+  margin-bottom: 6px;
+}
+
+.metric-badge {
+  display: inline-block;
+  font-size: 11px;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.3px;
+  padding: 3px 10px;
+  border-radius: 12px;
+  margin-bottom: 12px;
+}
+
+.badge-good { background: var(--green-bg); color: #059652; }
+.badge-needs-improvement { background: var(--orange-bg); color: #b57300; }
+.badge-poor { background: var(--red-bg); color: #d32f2f; }
+
+/* Distribution bar */
+.distribution-bar {
+  display: flex;
+  height: 8px;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-bottom: 6px;
+  background: var(--gray-100);
+}
+
+.dist-good { background: var(--green); }
+.dist-needs-improvement { background: var(--orange); }
+.dist-poor { background: var(--red); }
+
+.distribution-labels {
+  display: flex;
+  justify-content: space-between;
+  font-size: 11px;
+  color: var(--gray-500);
+}
+
+.distribution-labels span {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+}
+
+.distribution-labels .dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  display: inline-block;
+}
+
+/* Trend arrow */
+.metric-trend {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  margin-top: 8px;
+  color: var(--gray-500);
+}
+
+.trend-improving { color: #059652; }
+.trend-worsening { color: #d32f2f; }
+.trend-stable { color: var(--gray-500); }
+
+/* --- Breakdown Waterfall --- */
+.breakdown-waterfall {
+  margin-top: 8px;
+}
+
+.waterfall-bar-container {
+  display: flex;
+  height: 36px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: var(--gray-100);
+}
+
+.waterfall-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  transition: opacity 0.2s;
+  position: relative;
+  min-width: 30px;
+}
+
+.waterfall-segment:hover {
+  opacity: 0.85;
+}
+
+.waterfall-segment.bottleneck {
+  outline: 3px solid var(--gray-900);
+  outline-offset: -3px;
+  z-index: 1;
+}
+
+.seg-ttfb { background: #5b6abf; }
+.seg-loaddelay { background: #e07c39; }
+.seg-loadtime { background: #3b9ddb; }
+.seg-renderdelay { background: #8b5fb0; }
+.seg-inputdelay { background: #e07c39; }
+.seg-processing { background: #3b9ddb; }
+.seg-presentation { background: #8b5fb0; }
+.seg-before { background: #5b6abf; }
+.seg-shift { background: #e07c39; }
+.seg-after { background: #3b9ddb; }
+
+.waterfall-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+.waterfall-legend-item {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+}
+
+.waterfall-legend-item .swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.waterfall-legend-item.is-bottleneck {
+  font-weight: 700;
+  color: var(--gray-900);
+}
+
+/* --- Filmstrip --- */
+.filmstrip-container {
+  overflow-x: auto;
+  -webkit-overflow-scrolling: touch;
+  padding: 4px 0 12px;
+}
+
+.filmstrip-strip {
+  display: flex;
+  gap: 8px;
+  min-width: min-content;
+}
+
+.filmstrip-frame {
+  flex-shrink: 0;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  cursor: pointer;
+  transition: transform 0.15s;
+}
+
+.filmstrip-frame:hover {
+  transform: translateY(-2px);
+}
+
+.filmstrip-frame img {
+  width: 150px;
+  height: auto;
+  border: 1px solid var(--gray-200);
+  border-radius: 4px;
+  box-shadow: var(--shadow);
+  display: block;
+}
+
+.frame-time {
+  font-size: 11px;
+  font-weight: 600;
+  color: var(--gray-500);
+  margin-top: 6px;
+  font-variant-numeric: tabular-nums;
+}
+
+.filmstrip-hint {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 8px;
+  text-align: center;
+}
+
+/* --- Lightbox --- */
+.lightbox {
+  display: none;
+  position: fixed;
+  top: 0;
+  left: 0;
+  width: 100%;
+  height: 100%;
+  background: rgba(0, 0, 0, 0.85);
+  z-index: 1000;
+  align-items: center;
+  justify-content: center;
+  padding: 40px;
+  cursor: pointer;
+}
+
+.lightbox.active {
+  display: flex;
+}
+
+.lightbox-inner {
+  position: relative;
+  max-width: 90vw;
+  max-height: 90vh;
+  cursor: default;
+}
+
+.lightbox-inner img {
+  max-width: 90vw;
+  max-height: 85vh;
+  border-radius: 6px;
+  box-shadow: 0 8px 32px rgba(0,0,0,0.5);
+  display: block;
+}
+
+.lightbox-close {
+  position: absolute;
+  top: -36px;
+  right: 0;
+  width: 32px;
+  height: 32px;
+  background: rgba(255,255,255,0.15);
+  border: none;
+  border-radius: 50%;
+  color: #fff;
+  font-size: 20px;
+  line-height: 32px;
+  text-align: center;
+  cursor: pointer;
+  transition: background 0.2s;
+}
+
+.lightbox-close:hover {
+  background: rgba(255,255,255,0.3);
+}
+
+.lightbox-timestamp {
+  text-align: center;
+  color: rgba(255,255,255,0.7);
+  font-size: 14px;
+  margin-top: 12px;
+  font-variant-numeric: tabular-nums;
+}
+
+/* --- Attribution --- */
+.attribution-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.attribution-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--gray-500);
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.5px;
+  padding: 8px 12px;
+  border-bottom: 2px solid var(--gray-200);
+}
+
+.attribution-table td {
+  padding: 10px 12px;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+}
+
+.attribution-table tr:last-child td {
+  border-bottom: none;
+}
+
+.attribution-table code {
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  color: var(--gray-800);
+}
+
+/* --- Evidence Tabs --- */
+.evidence-tabs {
+  display: flex;
+  gap: 0;
+  border-bottom: 2px solid var(--gray-200);
+  margin-bottom: 20px;
+}
+
+.tab-btn {
+  padding: 10px 20px;
+  background: none;
+  border: none;
+  border-bottom: 2px solid transparent;
+  margin-bottom: -2px;
+  font-size: 14px;
+  font-weight: 600;
+  color: var(--gray-400);
+  cursor: pointer;
+  transition: color 0.2s, border-color 0.2s;
+  font-family: inherit;
+}
+
+.tab-btn:hover {
+  color: var(--gray-600);
+}
+
+.tab-btn.active {
+  color: var(--gray-900);
+  border-bottom-color: var(--gray-900);
+}
+
+.tab-content {
+  display: none;
+}
+
+.tab-content.active {
+  display: block;
+}
+
+.tab-content p {
+  margin-bottom: 12px;
+  font-size: 14px;
+  line-height: 1.7;
+  color: var(--gray-700);
+}
+
+.evidence-screenshot {
+  max-width: 100%;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  box-shadow: var(--shadow-md);
+  margin: 16px 0;
+  cursor: pointer;
+  display: block;
+}
+
+.evidence-screenshot:hover {
+  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
+}
+
+.screenshot-caption {
+  font-size: 12px;
+  color: var(--gray-500);
+  text-align: center;
+  margin-top: -8px;
+  margin-bottom: 16px;
+}
+
+/* --- Collapsible Details --- */
+details {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  margin-bottom: 20px;
+  box-shadow: var(--shadow);
+}
+
+details summary {
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+}
+
+details summary::-webkit-details-marker { display: none; }
+
+details summary::before {
+  content: "";
+  display: inline-block;
+  width: 8px;
+  height: 8px;
+  border-right: 2px solid var(--gray-400);
+  border-bottom: 2px solid var(--gray-400);
+  transform: rotate(-45deg);
+  transition: transform 0.2s;
+  flex-shrink: 0;
+}
+
+details[open] summary::before {
+  transform: rotate(45deg);
+}
+
+details .details-body {
+  padding: 0 24px 24px;
+}
+
+/* --- Code Blocks --- */
+pre {
+  background: var(--gray-900);
+  color: #e5e7eb;
+  padding: 16px 20px;
+  border-radius: 6px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+
+pre code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  background: none;
+  padding: 0;
+  color: inherit;
+  font-size: inherit;
+}
+
+code {
+  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--gray-800);
+}
+
+/* --- Verification Steps --- */
+.verify-steps {
+  counter-reset: verify-step;
+  list-style: none;
+  padding: 0;
+}
+
+.verify-steps li {
+  counter-increment: verify-step;
+  padding: 8px 0 8px 36px;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+
+.verify-steps li::before {
+  content: counter(verify-step);
+  position: absolute;
+  left: 0;
+  top: 8px;
+  width: 24px;
+  height: 24px;
+  background: var(--gray-100);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-600);
+  text-align: center;
+  line-height: 24px;
+}
+
+.verify-steps li + li {
+  border-top: 1px solid var(--gray-100);
+}
+
+/* --- Footer --- */
+.report-footer {
+  text-align: center;
+  padding: 32px 20px 0;
+  font-size: 12px;
+  color: var(--gray-400);
+}
+
+.report-footer .footer-line {
+  margin-bottom: 4px;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .report-container {
+    padding: 12px 10px 32px;
+  }
+
+  .report-header {
+    padding: 28px 16px 24px;
+  }
+
+  .report-header h1 {
+    font-size: 22px;
+  }
+
+  .metric-cards {
+    flex-direction: column;
+  }
+
+  .metric-card {
+    min-width: 0;
+  }
+
+  .section {
+    padding: 16px;
+  }
+
+  details .details-body {
+    padding: 0 16px 16px;
+  }
+
+  details summary {
+    padding: 12px 16px;
+    font-size: 15px;
+  }
+
+  .evidence-tabs {
+    overflow-x: auto;
+  }
+
+  .tab-btn {
+    padding: 8px 14px;
+    font-size: 13px;
+    white-space: nowrap;
+  }
+
+  .filmstrip-frame img {
+    width: 120px;
+  }
+
+  .waterfall-legend {
+    gap: 10px;
+    font-size: 11px;
+  }
+}
+
+/* --- Print --- */
+@media print {
+  body {
+    background: #fff;
+  }
+
+  .report-container {
+    max-width: 100%;
+    padding: 0;
+  }
+
+  .report-header {
+    background: var(--gray-900) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .section, details, .metric-card {
+    box-shadow: none;
+    break-inside: avoid;
+  }
+
+  details[open] {
+    break-inside: auto;
+  }
+
+  .filmstrip-container {
+    overflow-x: visible;
+  }
+
+  .filmstrip-strip {
+    flex-wrap: wrap;
+  }
+
+  .lightbox {
+    display: none !important;
+  }
+
+  .filmstrip-hint {
+    display: none;
+  }
+
+  .distribution-bar,
+  .waterfall-bar-container {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+
+  .metric-badge,
+  .dist-good,
+  .dist-needs-improvement,
+  .dist-poor {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
+}
+</style>
+</head>
+<body>
+
+<div class="report-container">
+
+  <!-- ============================================================
+       SECTION: HEADER
+       ============================================================ -->
+  <!-- SECTION:HEADER -->
+  <header class="report-header">
+    <h1>Core Web Vitals Report</h1>
+    <!-- Agent: Replace title above with metric-specific title, e.g. "LCP Performance Report" -->
+    <div class="subtitle">URL and date go here</div>
+    <!-- Agent: Replace subtitle with target URL and report date -->
+    <div class="powered-by">Powered by CoreDash</div>
+  </header>
+  <!-- /SECTION:HEADER -->
+
+  <!-- ============================================================
+       SECTION: EXECUTIVE SUMMARY
+       ============================================================ -->
+  <!-- SECTION:EXECUTIVE_SUMMARY -->
+  <div class="section">
+    <h2 class="section-title">Executive Summary</h2>
+    <div class="executive-summary">
+      <!-- Agent: Replace with 2-4 sentence executive summary covering the key finding,
+           the metric value, the element, and the recommended action. Example:
+           "<p><strong>LCP is 3,820ms (poor)</strong> on <code>/product/running-shoes-42</code>, mobile.
+           The bottleneck is LOADDELAY at 1,980ms (52% of total LCP) — the hero image is discovered late
+           because it lacks a preload hint. Adding a <code>&lt;link rel="preload"&gt;</code> is projected
+           to save ~1,500ms.</p>" -->
+      <p>Executive summary placeholder. The agent will replace this with a concise overview of the findings, root cause, and recommended fix.</p>
+    </div>
+  </div>
+  <!-- /SECTION:EXECUTIVE_SUMMARY -->
+
+  <!-- ============================================================
+       SECTION: METRIC CARDS
+       ============================================================ -->
+  <!-- SECTION:METRIC_CARDS -->
+  <div class="metric-cards">
+    <!-- Agent: Replace these cards with actual metric data. Adjust rating-* class,
+         badge-* class, distribution percentages, and trend direction/class.
+         Include only metrics relevant to the page (typically LCP, INP, CLS; optionally FCP, TTFB). -->
+
+    <!-- Example card: LCP -->
+    <div class="metric-card rating-poor">
+      <div class="metric-name">LCP</div>
+      <div class="metric-value">3.8s</div>
+      <span class="metric-badge badge-poor">Poor</span>
+      <div class="distribution-bar">
+        <div class="dist-good" style="width: 38%"></div>
+        <div class="dist-needs-improvement" style="width: 30%"></div>
+        <div class="dist-poor" style="width: 32%"></div>
+      </div>
+      <div class="distribution-labels">
+        <span><span class="dot" style="background:var(--green)"></span> 38% good</span>
+        <span><span class="dot" style="background:var(--orange)"></span> 30% ok</span>
+        <span><span class="dot" style="background:var(--red)"></span> 32% poor</span>
+      </div>
+      <div class="metric-trend trend-worsening">Worsened +340ms over 7 days</div>
+    </div>
+
+    <!-- Example card: INP -->
+    <div class="metric-card rating-good">
+      <div class="metric-name">INP</div>
+      <div class="metric-value">120ms</div>
+      <span class="metric-badge badge-good">Good</span>
+      <div class="distribution-bar">
+        <div class="dist-good" style="width: 82%"></div>
+        <div class="dist-needs-improvement" style="width: 14%"></div>
+        <div class="dist-poor" style="width: 4%"></div>
+      </div>
+      <div class="distribution-labels">
+        <span><span class="dot" style="background:var(--green)"></span> 82% good</span>
+        <span><span class="dot" style="background:var(--orange)"></span> 14% ok</span>
+        <span><span class="dot" style="background:var(--red)"></span> 4% poor</span>
+      </div>
+      <div class="metric-trend trend-stable">Stable over 7 days</div>
+    </div>
+
+    <!-- Example card: CLS -->
+    <div class="metric-card rating-needs-improvement">
+      <div class="metric-name">CLS</div>
+      <div class="metric-value">0.14</div>
+      <span class="metric-badge badge-needs-improvement">Needs Improvement</span>
+      <div class="distribution-bar">
+        <div class="dist-good" style="width: 55%"></div>
+        <div class="dist-needs-improvement" style="width: 28%"></div>
+        <div class="dist-poor" style="width: 17%"></div>
+      </div>
+      <div class="distribution-labels">
+        <span><span class="dot" style="background:var(--green)"></span> 55% good</span>
+        <span><span class="dot" style="background:var(--orange)"></span> 28% ok</span>
+        <span><span class="dot" style="background:var(--red)"></span> 17% poor</span>
+      </div>
+      <div class="metric-trend trend-improving">Improved -0.03 over 7 days</div>
+    </div>
+  </div>
+  <!-- /SECTION:METRIC_CARDS -->
+
+  <!-- ============================================================
+       SECTION: BREAKDOWN WATERFALL
+       ============================================================ -->
+  <!-- SECTION:BREAKDOWN -->
+  <div class="section">
+    <h2 class="section-title">Phase Breakdown</h2>
+    <div class="breakdown-waterfall">
+      <!-- Agent: Replace bar widths with actual phase proportions.
+           Add class "bottleneck" to the dominant phase segment.
+           Adjust segment classes based on metric:
+             LCP: seg-ttfb, seg-loaddelay, seg-loadtime, seg-renderdelay
+             INP: seg-inputdelay, seg-processing, seg-presentation
+             CLS: seg-before, seg-shift, seg-after
+           Set width as percentage of total. -->
+      <div class="waterfall-bar-container">
+        <div class="waterfall-segment seg-ttfb" style="width: 16%" title="TTFB: 620ms (16%)">TTFB</div>
+        <div class="waterfall-segment seg-loaddelay bottleneck" style="width: 52%" title="LOADDELAY: 1,980ms (52%)">LOADDELAY</div>
+        <div class="waterfall-segment seg-loadtime" style="width: 22%" title="LOADTIME: 840ms (22%)">LOADTIME</div>
+        <div class="waterfall-segment seg-renderdelay" style="width: 10%" title="RENDERDELAY: 380ms (10%)">RENDERDELAY</div>
+      </div>
+      <div class="waterfall-legend">
+        <!-- Agent: Update legend to match actual phases and values.
+             Add is-bottleneck class to the dominant phase. -->
+        <div class="waterfall-legend-item">
+          <span class="swatch seg-ttfb"></span> TTFB: 620ms (16%)
+        </div>
+        <div class="waterfall-legend-item is-bottleneck">
+          <span class="swatch seg-loaddelay"></span> LOADDELAY: 1,980ms (52%)
+        </div>
+        <div class="waterfall-legend-item">
+          <span class="swatch seg-loadtime"></span> LOADTIME: 840ms (22%)
+        </div>
+        <div class="waterfall-legend-item">
+          <span class="swatch seg-renderdelay"></span> RENDERDELAY: 380ms (10%)
+        </div>
+      </div>
+    </div>
+  </div>
+  <!-- /SECTION:BREAKDOWN -->
+
+  <!-- ============================================================
+       SECTION: FILMSTRIP
+       ============================================================ -->
+  <!-- SECTION:FILMSTRIP -->
+  <div class="section">
+    <h2 class="section-title">Page Load Filmstrip</h2>
+    <div class="filmstrip-container">
+      <div class="filmstrip-strip">
+        <!-- Agent: Insert filmstrip frames as <div class="filmstrip-frame"><img src="data:image/png;base64,..." /><span class="frame-time">0.0s</span></div> elements -->
+        <!-- Placeholder frames for template preview -->
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 1%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 0.0s" />
+          <span class="frame-time">0.0s</span>
+        </div>
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 2%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 0.5s" />
+          <span class="frame-time">0.5s</span>
+        </div>
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 3%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 1.0s" />
+          <span class="frame-time">1.0s</span>
+        </div>
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 4%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 1.5s" />
+          <span class="frame-time">1.5s</span>
+        </div>
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 5%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 2.0s" />
+          <span class="frame-time">2.0s</span>
+        </div>
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 6%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 2.5s" />
+          <span class="frame-time">2.5s</span>
+        </div>
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 7%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 3.0s" />
+          <span class="frame-time">3.0s</span>
+        </div>
+        <div class="filmstrip-frame" onclick="openLightbox(this)">
+          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 8%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 3.5s" />
+          <span class="frame-time">3.5s</span>
+        </div>
+      </div>
+    </div>
+    <div class="filmstrip-hint">Click any frame to enlarge</div>
+  </div>
+  <!-- /SECTION:FILMSTRIP -->
+
+  <!-- ============================================================
+       SECTION: ATTRIBUTION
+       ============================================================ -->
+  <!-- SECTION:ATTRIBUTION -->
+  <div class="section">
+    <h2 class="section-title">Attribution</h2>
+    <table class="attribution-table">
+      <!-- Agent: Replace table rows with actual attribution data from CoreDash.
+           Adjust fields based on metric:
+             LCP: Element, Type, URL, Resource URL
+             INP: Element, Event type, Load state, Script URL
+             CLS: Element, Shift source, Previous/Current rects -->
+      <thead>
+        <tr>
+          <th>Property</th>
+          <th>Value</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>Element</td>
+          <td><code>div.hero-banner &gt; img.product-main</code></td>
+        </tr>
+        <tr>
+          <td>Type</td>
+          <td>Image</td>
+        </tr>
+        <tr>
+          <td>Resource URL</td>
+          <td><code>https://cdn.example.com/images/hero.jpg</code></td>
+        </tr>
+        <tr>
+          <td>Device</td>
+          <td>Mobile</td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+  <!-- /SECTION:ATTRIBUTION -->
+
+  <!-- ============================================================
+       SECTION: ROOT CAUSE WITH EVIDENCE TABS
+       ============================================================ -->
+  <!-- SECTION:ROOT_CAUSE -->
+  <div class="section">
+    <h2 class="section-title">Root Cause Analysis</h2>
+    <div class="evidence-tabs">
+      <button class="tab-btn active" data-tab="rum">RUM Evidence</button>
+      <button class="tab-btn" data-tab="chrome">Chrome Evidence</button>
+    </div>
+    <div class="tab-content active" id="tab-rum">
+      <!-- Agent: Replace with RUM evidence text -->
+      <p><strong>Root cause:</strong> Root cause statement placeholder. The agent will replace this with a precise one-sentence root cause naming the element, the cause, and the impact.</p>
+      <p><strong>Evidence from real users (CoreDash):</strong> RUM evidence placeholder. The agent will replace this with 2-3 sentences including the metric value, element selector, bottleneck phase with percentage, device segment, and trend direction.</p>
+    </div>
+    <div class="tab-content" id="tab-chrome">
+      <!-- Agent: Replace with Chrome evidence text + screenshots -->
+      <p><strong>Evidence from lab trace (Chrome):</strong> Chrome trace evidence placeholder. The agent will replace this with 2-3 sentences describing what the waterfall, flamechart, or filmstrip revealed about the specific bottleneck.</p>
+      <p><strong>Combined:</strong> Combined evidence placeholder. The agent will tie the Chrome finding to the RUM bottleneck in 1-2 sentences explaining the mechanical cause.</p>
+      <!-- SECTION:WATERFALL_SCREENSHOT -->
+      <!-- Agent: Insert waterfall screenshot as base64 img with class="evidence-screenshot" -->
+      <img class="evidence-screenshot" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='300' fill='%23f3f4f6'%3E%3Crect width='800' height='300' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='16'%3ENetwork Waterfall Screenshot%3C/text%3E%3C/svg%3E" alt="Network waterfall showing resource loading sequence" onclick="openLightbox(this)" />
+      <div class="screenshot-caption">Network waterfall — LCP resource highlighted</div>
+      <!-- /SECTION:WATERFALL_SCREENSHOT -->
+      <!-- SECTION:FLAMECHART -->
+      <!-- Agent: Insert flamechart screenshot as base64 img (INP only, omit for LCP/CLS) -->
+      <!-- /SECTION:FLAMECHART -->
+    </div>
+  </div>
+  <!-- /SECTION:ROOT_CAUSE -->
+
+  <!-- ============================================================
+       SECTION: RECOMMENDED FIX
+       ============================================================ -->
+  <!-- SECTION:RECOMMENDED_FIX -->
+  <details open>
+    <summary>Recommended Fix</summary>
+    <div class="details-body">
+      <!-- Agent: Replace with specific fix description and code example.
+           Use <pre><code> for code blocks. Be precise: name the file, the line,
+           the exact change. -->
+      <p>Fix description placeholder. The agent will replace this with a specific, actionable fix that addresses the identified root cause.</p>
+      <pre><code>&lt;!-- Example: Add preload for the LCP image --&gt;
+&lt;link rel="preload" href="/images/hero.jpg" as="image" fetchpriority="high" /&gt;
+
+&lt;!-- And add fetchpriority to the img element --&gt;
+&lt;img src="/images/hero.jpg" alt="Hero" fetchpriority="high" /&gt;</code></pre>
+    </div>
+  </details>
+  <!-- /SECTION:RECOMMENDED_FIX -->
+
+  <!-- ============================================================
+       SECTION: HOW TO VERIFY
+       ============================================================ -->
+  <!-- SECTION:HOW_TO_VERIFY -->
+  <details>
+    <summary>How to Verify</summary>
+    <div class="details-body">
+      <!-- Agent: Replace with verification steps specific to the fix.
+           Use the ol.verify-steps structure. -->
+      <ol class="verify-steps">
+        <li>Deploy the change to a staging environment or use a local preview.</li>
+        <li>Run a Lighthouse audit on the affected page and confirm the metric has improved.</li>
+        <li>Monitor CoreDash over the next 3-7 days to verify the p75 value drops below the "good" threshold.</li>
+        <li>Check the distribution — confirm the percentage of page loads in the "poor" bucket has decreased.</li>
+      </ol>
+    </div>
+  </details>
+  <!-- /SECTION:HOW_TO_VERIFY -->
+
+  <!-- ============================================================
+       SECTION: FOOTER
+       ============================================================ -->
+  <!-- SECTION:FOOTER -->
+  <footer class="report-footer">
+    <div class="footer-line">Generated by CWV Superpower</div>
+    <div class="footer-line">Data sources: CoreDash Real User Monitoring + Chrome DevTools Trace</div>
+  </footer>
+  <!-- /SECTION:FOOTER -->
+
+</div>
+
+<!-- ============================================================
+     Inline JavaScript — Lightbox + Tab Switching
+     ============================================================ -->
+<script>
+(function() {
+  'use strict';
+
+  // ---- Lightbox ----
+  var lightbox = null;
+
+  function createLightbox() {
+    lightbox = document.createElement('div');
+    lightbox.className = 'lightbox';
+    lightbox.innerHTML =
+      '<div class="lightbox-inner">' +
+        '<button class="lightbox-close" aria-label="Close">&times;</button>' +
+        '<img src="" alt="Enlarged view" />' +
+        '<div class="lightbox-timestamp"></div>' +
+      '</div>';
+    document.body.appendChild(lightbox);
+
+    // Close on backdrop click
+    lightbox.addEventListener('click', function(e) {
+      if (e.target === lightbox) {
+        closeLightbox();
+      }
+    });
+
+    // Close on X button click
+    lightbox.querySelector('.lightbox-close').addEventListener('click', function(e) {
+      e.stopPropagation();
+      closeLightbox();
+    });
+  }
+
+  function closeLightbox() {
+    if (lightbox) {
+      lightbox.classList.remove('active');
+    }
+  }
+
+  // Expose openLightbox globally for onclick attributes
+  window.openLightbox = function(el) {
+    if (!lightbox) createLightbox();
+
+    var img;
+    var timestamp = '';
+
+    // Handle both filmstrip frames (div with img child) and standalone screenshots
+    if (el.tagName === 'IMG') {
+      img = el;
+      // Check if this is inside a filmstrip frame
+      var parent = el.closest('.filmstrip-frame');
+      if (parent) {
+        var timeEl = parent.querySelector('.frame-time');
+        if (timeEl) timestamp = timeEl.textContent;
+      }
+    } else {
+      // It's a filmstrip frame div
+      img = el.querySelector('img');
+      var timeEl = el.querySelector('.frame-time');
+      if (timeEl) timestamp = timeEl.textContent;
+    }
+
+    if (!img) return;
+
+    var lightboxImg = lightbox.querySelector('.lightbox-inner img');
+    lightboxImg.src = img.src;
+    lightboxImg.alt = img.alt || 'Enlarged view';
+
+    var tsEl = lightbox.querySelector('.lightbox-timestamp');
+    tsEl.textContent = timestamp;
+    tsEl.style.display = timestamp ? 'block' : 'none';
+
+    lightbox.classList.add('active');
+  };
+
+  // Close on Escape key
+  document.addEventListener('keydown', function(e) {
+    if (e.key === 'Escape') {
+      closeLightbox();
+    }
+  });
+
+  // ---- Tab Switching ----
+  document.addEventListener('click', function(e) {
+    var btn = e.target.closest('.tab-btn');
+    if (!btn) return;
+
+    var tabGroup = btn.closest('.section');
+    if (!tabGroup) return;
+
+    var tabId = btn.getAttribute('data-tab');
+
+    // Deactivate all tabs in this group
+    var allBtns = tabGroup.querySelectorAll('.tab-btn');
+    for (var i = 0; i < allBtns.length; i++) {
+      allBtns[i].classList.remove('active');
+    }
+
+    var allContents = tabGroup.querySelectorAll('.tab-content');
+    for (var i = 0; i < allContents.length; i++) {
+      allContents[i].classList.remove('active');
+    }
+
+    // Activate selected tab
+    btn.classList.add('active');
+    var targetContent = document.getElementById('tab-' + tabId);
+    if (targetContent) {
+      targetContent.classList.add('active');
+    }
+  });
+})();
+</script>
+
+</body>
+</html>

@@ -1,0 +1,16 @@
+{
+  "name": "cwv-superpowers-marketplace",
+  "description": "Core Web Vitals superpowers for Claude Code",
+  "owner": {
+    "name": "CoreWebVitals",
+    "url": "https://coredash.app"
+  },
+  "plugins": [
+    {
+      "name": "cwv-superpowers",
+      "description": "Core Web Vitals diagnosis and fixing skills for Claude Code — powered by CoreDash real user monitoring",
+      "version": "1.0.0",
+      "source": "./"
+    }
+  ]
+}
