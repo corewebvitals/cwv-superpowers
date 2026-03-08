@@ -2,6 +2,15 @@
 
 Invoked by SKILL.md with a target filter (`ff` or `u` with value) and device (default: mobile).
 
+**Progress:** Print these `↳` sub-status lines as you execute each call:
+```
+   ↳ Identifying slow interaction element...
+   ↳ Finding responsible scripts (LOAF)...
+   ↳ Checking interaction load state...
+   ↳ Breaking down INP phases...
+   ↳ Checking 7-day trend...
+```
+
 ---
 
 ## Attribution calls
@@ -85,6 +94,8 @@ The handler finished but the browser was slow to paint the result.
 Look at rendering activity after the handler completes. Find "Recalculate Style", "Layout", and "Paint" blocks — measure their duration. Check DOM size (`document.querySelectorAll('*').length`). Look for non-composited animations. Check if `content-visibility: auto` could reduce layout scope.
 
 ## Summary format
+
+After running all calls, print `✅ INP diagnosed: [BOTTLENECK PHASE] is [X]% of INP — [one-sentence cause]`
 
 ```
 INP diagnosis for [PAGE]:

@@ -4,6 +4,15 @@ CLS has no phase breakdown — `BREAKDOWN.CLS` is `["CLS"]`. Diagnosis works by 
 
 This module is invoked by SKILL.md with a target filter (`ff` or `u` with value) and device (default: mobile).
 
+**Progress:** Print these `↳` sub-status lines as you execute each call:
+```
+   ↳ Identifying shifting element...
+   ↳ Comparing mobile vs desktop...
+   ↳ Comparing new vs repeat visitors...
+   ↳ Checking network speed sensitivity...
+   ↳ Checking 7-day trend...
+```
+
 ---
 
 ## Attribution calls
@@ -132,6 +141,8 @@ Walk through these patterns in order. Stop at the first match. Each pattern defi
 ---
 
 ## Summary format
+
+After running all calls, print `✅ CLS diagnosed: [PATTERN NAME] — [one-sentence cause]`
 
 ```
 CLS diagnosis for [PAGE]:

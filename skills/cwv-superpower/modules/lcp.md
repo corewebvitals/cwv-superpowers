@@ -3,6 +3,15 @@
 Invoked by SKILL.md with a target filter (`ff` or `u` with value) and device (default: mobile).
 Run the attribution, breakdown, and trend calls below, then interpret results.
 
+**Progress:** Print these `↳` sub-status lines as you execute each call:
+```
+   ↳ Identifying LCP element...
+   ↳ Checking element type...
+   ↳ Checking priority state...
+   ↳ Breaking down LCP phases...
+   ↳ Checking 7-day trend...
+```
+
 ---
 
 ## Attribution calls
@@ -186,7 +195,9 @@ Check the `summary.trend` field in the response to determine if LCP is improving
 
 ## Summary format
 
-After running all calls, produce this structured summary for SKILL.md:
+After running all calls, print `✅ LCP diagnosed: [BOTTLENECK PHASE] is [X]% of LCP — [one-sentence cause]`
+
+Then produce this structured summary for SKILL.md:
 
 ```
 LCP diagnosis for [PAGE]:

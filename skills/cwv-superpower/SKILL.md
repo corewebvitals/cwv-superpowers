@@ -7,7 +7,23 @@ Be precise, not generic. Name the element, not the category. Say "`div.hero-bann
 
 ---
 
+## Progress Communication
+
+Print clear visual progress at every phase so the user always knows where they are.
+
+**Rules:**
+- **Before each step:** Print a header line with the step's emoji + number + name (e.g., `🔍 Step 0: Checking capabilities...`)
+- **During data collection:** Print `   ↳` sub-status lines for each MCP call or Chrome action as you execute it
+- **After each step completes:** Print `✅` with a one-line finding summary (the conclusion, not the data)
+- **On errors or fallbacks:** Print `⚠️` with what happened and what you're doing instead (e.g., `⚠️ Chrome not available — proceeding with RUM only`)
+
+These progress lines replace silence, not add noise. The "never show raw JSON" rule still applies — progress lines announce actions and findings, not data.
+
+---
+
 ## Step 0: Capability Detection
+
+Print: `🔍 Step 0: Checking capabilities...`
 
 Run these checks silently at the start of every conversation. Do not print results — just route to the correct tier.
 
@@ -24,9 +40,13 @@ Run these checks silently at the start of every conversation. Do not print resul
 | Yes | No | **Lab only** | "Chrome is available but CoreDash MCP isn't connected. I can set it up now (3 minutes) — read `modules/setup.md` and follow it — or run a Chrome lab audit first while you install it in the background." |
 | No | No | **None** | "I need Chrome (`claude --chrome`) and CoreDash MCP. Let me help you set both up." Read `modules/setup.md` and guide the user through installation. |
 
+After detection, print the result: `✅ CoreDash connected | ✅ Chrome available → Full tier` (or the appropriate variant with ⚠️ for unavailable capabilities).
+
 ---
 
 ## Step 1: Intent
+
+Print: `🎯 Step 1: Understanding your goal...`
 
 Ask the user:
 
@@ -61,24 +81,26 @@ Once you have page + metric + device, proceed to **Step 2B**.
 
 ## Step 2A: Automated Discovery
 
-Make four CoreDash MCP calls. Do not show intermediate output — collect all results first, then interpret.
+Print: `📊 Step 2A: Scanning your site for the biggest issue...`
 
-1. **Overall health:**
+Make four CoreDash MCP calls. Print `↳` sub-status lines as you execute each call — do not show intermediate data output.
+
+1. **Overall health:** Print `   ↳ Checking overall health...`
    ```
    get_metrics (no arguments)
    ```
 
-2. **Mobile health:**
+2. **Mobile health:** Print `   ↳ Checking mobile health...`
    ```
    get_metrics with filters: { "d": "mobile" }
    ```
 
-3. **Worst 5 URLs by LCP:**
+3. **Worst 5 URLs by LCP:** Print `   ↳ Finding worst URLs by LCP...`
    ```
    get_metrics with metrics: "LCP", group: "u", limit: 5
    ```
 
-4. **Worst 5 URLs by INP:**
+4. **Worst 5 URLs by INP:** Print `   ↳ Finding worst URLs by INP...`
    ```
    get_metrics with metrics: "INP", group: "u", limit: 5
    ```
@@ -92,11 +114,15 @@ Pick the highest-impact issue using these priorities:
 3. **Check the tail.** A passing p75 with >15% of page loads in the "poor" bucket is NOT passing — flag it.
 4. **Volume matters.** Among equally-rated metrics, the one affecting more page loads wins.
 
+Print `✅ Found: [metric] is [value] ([rating]) on [URL]` — a one-line summary of the highest-impact issue.
+
 Tell the user what you found in 2-3 sentences. Set the filter to `u` with the worst URL. Proceed to **Step 2B**.
 
 ---
 
 ## Step 2B: Targeted RUM Diagnosis
+
+Print: `🔬 Step 2B: Deep [METRIC] diagnosis...`
 
 Based on the metric, read the appropriate diagnosis module:
 
@@ -109,6 +135,8 @@ Pass to the module: the **filter key** (`ff` or `u`), the **filter value**, and 
 If multiple metrics are poor for the same page, diagnose in this order: **LCP first, then INP, then CLS.** Complete each module before starting the next.
 
 ### After the module returns
+
+Print `✅ Bottleneck: [PHASE] is [X]% of [METRIC] — [one-sentence explanation]`
 
 Summarize the RUM findings in 3-5 lines. The summary must include: the element, the bottleneck phase with its percentage share, and the trend direction.
 
@@ -126,7 +154,9 @@ Proceed to **Step 3**.
 
 ## Step 3: Chrome Trace
 
-**If Chrome is not available:** Skip to **Step 4** with RUM-only evidence. The diagnosis module findings from Step 2B are sufficient for a root cause statement and code fix.
+Print: `🌐 Step 3: Chrome trace...`
+
+**If Chrome is not available:** Print `⚠️ Chrome not available — proceeding with RUM-only evidence`. Skip to **Step 4**. The diagnosis module findings from Step 2B are sufficient for a root cause statement and code fix.
 
 **If Chrome is available:** Read `modules/chrome.md` and follow it.
 
@@ -143,6 +173,8 @@ Proceed to **Step 4**.
 ---
 
 ## Step 4: Root Cause Synthesis
+
+Print: `🎯 Step 4: Root cause`
 
 ### Full tier (both RUM and Chrome available)
 
@@ -169,6 +201,8 @@ Proceed to **Step 5**.
 ---
 
 ## Step 5: Output
+
+Print: `📋 Step 5: What next?`
 
 Ask the user:
 

@@ -9,6 +9,15 @@ Three non-negotiable rules:
    - Step 1: Try the exact CSS selector from CoreDash in the DOM.
    - Step 2: If not found, find the most likely element that matches what the selector describes — by position, role, and type. A selector like `section.hero > img.css-x7k2m3` means "the image inside the hero section." Find that image regardless of class names. Class names may be generated, minified, or changed between builds.
 
+## Progress
+
+Print these `↳` sub-status lines as you execute each action:
+```
+   ↳ Navigating to page...
+   ↳ Capturing performance trace...
+   ↳ Analyzing [waterfall/flamechart/filmstrip]...
+```
+
 ## Trace Setup
 - **Mobile analysis (default):** Device emulation (mobile viewport, e.g. Moto G Power), Network: Fast 3G throttling, CPU: 4x slowdown. These approximate a mid-range mobile device on a typical mobile network.
 - **Desktop analysis:** No throttling, no CPU slowdown, standard viewport.
@@ -135,6 +144,9 @@ List what to capture for the report:
 5. **Element screenshot** — the identified element highlighted in the viewport.
 
 ## Output format
+
+After completing the trace, print `✅ Confirmed: [one-sentence key finding from trace]`
+
 ```
 Chrome trace findings:
 - URL visited: [URL]
