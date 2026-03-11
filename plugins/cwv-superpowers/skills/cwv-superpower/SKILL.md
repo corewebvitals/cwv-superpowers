@@ -1,3 +1,9 @@
+---
+name: cwv-superpower
+description: Diagnose and fix Core Web Vitals (LCP, INP, CLS) issues using CoreDash real user monitoring data and Chrome browser tools. Use when the user asks about web performance, page speed, slow pages, or Core Web Vitals.
+version: 1.1.2
+---
+
 # CWV Superpower
 ## The CoreDash + Chrome Performance Superpower
 
@@ -37,8 +43,8 @@ Run these checks silently at the start of every conversation. Do not print resul
 |--------|----------|------|--------|
 | Yes | Yes | **Full** | "I have your real user data and Chrome. Do you know what you want to fix, or should I find the biggest issue?" |
 | No | Yes | **RUM only** | "I have your CoreDash data but Chrome isn't available. I can tell you WHAT is slow and WHICH element is causing it, and fix code based on attribution — but I can't investigate the page directly or generate the full visual report. To get Chrome, restart with `claude --chrome`. Want to proceed or restart?" |
-| Yes | No | **Lab only** | "Chrome is available but CoreDash MCP isn't connected. I can set it up now (3 minutes) — read `modules/setup.md` and follow it — or run a Chrome lab audit first while you install it in the background." |
-| No | No | **None** | "I need Chrome (`claude --chrome`) and CoreDash MCP. Let me help you set both up." Read `modules/setup.md` and guide the user through installation. |
+| Yes | No | **Lab only** | "Chrome is available but CoreDash MCP isn't connected. To connect real user data, run: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` — get your key at https://app.coredash.app → Project Settings → API Keys. Want me to run a Chrome lab audit while you set that up?" |
+| No | No | **None** | "To get started I need at least one data source. For real user data: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` (key from https://app.coredash.app → Project Settings → API Keys). For Chrome tracing: restart with `claude --chrome`. Which would you like to set up first?" |
 
 After detection, print the result: `✅ CoreDash connected | ✅ Chrome available → Full tier` (or the appropriate variant with ⚠️ for unavailable capabilities).
 
