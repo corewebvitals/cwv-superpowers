@@ -5,866 +5,757 @@
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
 <title>Core Web Vitals Report</title>
 <style>
-  /* ===== Reset & Base ===== */
-  *, *::before, *::after {
-    box-sizing: border-box;
-    margin: 0;
-    padding: 0;
-  }
+/* ============================================================
+   CWV Superpower — Unified Report Styles
+   Self-contained, no external dependencies
+   ============================================================ */
 
-  html {
-    font-size: 16px;
-    -webkit-text-size-adjust: 100%;
-  }
+/* --- Reset & Base --- */
+*, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
-  body {
-    font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
-    color: #1a1a2e;
-    background: #f4f5f7;
-    line-height: 1.6;
-    padding: 0;
-    margin: 0;
-  }
+:root {
+  /* CWV status (ratings only, never decorative) */
+  --cwv-good: #0cad5a;
+  --cwv-ni: #e69500;
+  --cwv-poor: #e53e3e;
 
-  /* ===== Layout ===== */
-  .report-wrapper {
-    max-width: 960px;
-    margin: 0 auto;
-    padding: 24px 20px 48px;
-  }
+  /* Phase breakdown (blue-to-lilac, 4 steps) */
+  --phase-1: #4a5fa8;
+  --phase-2: #6474c4;
+  --phase-3: #7e8fd6;
+  --phase-4: #9ba5de;
 
-  /* ===== Header ===== */
+  /* Grayscale */
+  --gray-50:  #f9fafb;
+  --gray-100: #f3f4f6;
+  --gray-200: #e5e7eb;
+  --gray-300: #d1d5db;
+  --gray-400: #9ca3af;
+  --gray-500: #6b7280;
+  --gray-600: #4b5563;
+  --gray-700: #374151;
+  --gray-800: #1f2937;
+  --gray-900: #111827;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  /* Surfaces */
+  --radius: 8px;
+  --radius-lg: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
+}
+
+body {
+  font-family: var(--font-sans);
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gray-800);
+  background: var(--gray-50);
+  -webkit-text-size-adjust: 100%;
+}
+
+/* --- Layout --- */
+.report-container {
+  max-width: 920px;
+  margin: 0 auto;
+  padding: 24px 20px 48px;
+}
+
+/* --- Header --- */
+.report-header {
+  text-align: center;
+  padding: 36px 24px 32px;
+  margin-bottom: 32px;
+  background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-700) 100%);
+  color: #fff;
+  border-radius: var(--radius);
+}
+
+.report-header h1 {
+  font-size: 26px;
+  font-weight: 700;
+  letter-spacing: -0.5px;
+  margin-bottom: 8px;
+}
+
+.report-header .subtitle {
+  font-size: 14px;
+  color: var(--gray-300);
+  line-height: 1.5;
+}
+
+.report-header .subtitle a {
+  color: #93c5fd;
+  text-decoration: none;
+}
+
+.report-header .powered-by {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 16px;
+}
+
+/* --- Sections --- */
+.section {
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  padding: 24px;
+  margin-bottom: 20px;
+}
+
+.section-title {
+  font-size: 18px;
+  font-weight: 700;
+  color: var(--gray-900);
+  margin-bottom: 16px;
+  padding-bottom: 8px;
+  border-bottom: 2px solid var(--gray-100);
+}
+
+/* --- Executive Summary --- */
+.executive-summary {
+  font-size: 15px;
+  line-height: 1.7;
+  color: var(--gray-700);
+}
+
+.executive-summary strong { color: var(--gray-900); }
+.executive-summary p { margin-bottom: 10px; }
+.executive-summary p:last-child { margin-bottom: 0; }
+
+/* --- Metric Cards (CoreDash style) --- */
+.metric-cards {
+  display: flex;
+  gap: 16px;
+  flex-wrap: wrap;
+  padding: 20px;
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
+}
+
+.metric-card {
+  flex: 1 1 240px;
+  min-width: 220px;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius-lg);
+  padding: 20px 22px 16px;
+  transition: box-shadow 0.15s ease;
+}
+
+.metric-card:hover { box-shadow: var(--shadow); }
+
+.mc-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: baseline;
+  margin-bottom: 2px;
+}
+
+.mc-title { font-size: 16px; font-weight: 700; color: var(--gray-900); }
+
+.mc-value {
+  font-size: 22px;
+  font-weight: 700;
+  color: var(--gray-900);
+  font-variant-numeric: tabular-nums;
+}
+
+.mc-value .unit { font-size: 13px; font-weight: 500; color: var(--gray-400); margin-left: 1px; }
+
+.mc-subtitle {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  margin-bottom: 14px;
+}
+
+.mc-metric-name { font-size: 13px; color: var(--gray-500); }
+
+.mc-badge {
+  display: inline-block;
+  padding: 2px 10px;
+  border-radius: 4px;
+  font-size: 12px;
+  font-weight: 600;
+  color: #fff;
+}
+
+.mc-badge.good { background: var(--cwv-good); }
+.mc-badge.needs-improvement { background: var(--cwv-ni); }
+.mc-badge.poor { background: var(--cwv-poor); }
+
+.dist-track {
+  position: relative;
+  height: 10px;
+  background: #edf2f7;
+  border-radius: 5px;
+  margin-bottom: 12px;
+}
+
+.dist-fill {
+  display: flex;
+  height: 100%;
+  border-radius: 5px;
+  overflow: hidden;
+  width: 100%;
+}
+
+.dist-fill .seg-good { background: var(--cwv-good); }
+.dist-fill .seg-ni { background: var(--cwv-ni); }
+.dist-fill .seg-poor { background: var(--cwv-poor); }
+
+.p75-dot {
+  position: absolute;
+  top: 50%;
+  transform: translate(-50%, -50%);
+  width: 14px;
+  height: 14px;
+  border-radius: 50%;
+  background: #fff;
+  border: 3px solid var(--gray-800);
+  z-index: 2;
+  box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+}
+
+.mc-footer { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
+
+.mc-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 4px;
+  font-size: 12px;
+  color: var(--gray-500);
+  background: var(--gray-50);
+  border: 1px solid var(--gray-200);
+  border-radius: 4px;
+  padding: 2px 8px;
+  font-weight: 500;
+}
+
+.mc-pill.trend-improving { color: var(--cwv-good); }
+.mc-pill.trend-worsening { color: var(--cwv-poor); }
+.mc-pill.trend-stable { color: var(--gray-400); }
+
+/* --- Phase Breakdown --- */
+.breakdown-waterfall { margin-top: 8px; }
+
+.waterfall-bar-container {
+  display: flex;
+  height: 36px;
+  border-radius: 6px;
+  overflow: hidden;
+  margin-bottom: 12px;
+  background: var(--gray-100);
+}
+
+.waterfall-segment {
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  font-size: 11px;
+  font-weight: 600;
+  color: #fff;
+  position: relative;
+  min-width: 30px;
+}
+
+.waterfall-segment:hover { opacity: 0.85; }
+
+.waterfall-segment.bottleneck {
+  outline: 3px solid var(--gray-900);
+  outline-offset: -3px;
+  z-index: 1;
+}
+
+.seg-ttfb, .seg-inputdelay, .seg-before { background: var(--phase-1); }
+.seg-loaddelay, .seg-processing, .seg-shift { background: var(--phase-2); }
+.seg-loadtime, .seg-presentation, .seg-after { background: var(--phase-3); }
+.seg-renderdelay { background: var(--phase-4); }
+
+.waterfall-legend {
+  display: flex;
+  flex-wrap: wrap;
+  gap: 16px;
+  font-size: 12px;
+  color: var(--gray-600);
+}
+
+.waterfall-legend-item { display: flex; align-items: center; gap: 6px; }
+
+.waterfall-legend-item .swatch {
+  width: 12px;
+  height: 12px;
+  border-radius: 3px;
+  display: inline-block;
+}
+
+.waterfall-legend-item.is-bottleneck { font-weight: 700; color: var(--gray-900); }
+
+.waterfall-legend-item.is-bottleneck .swatch {
+  outline: 2px solid var(--gray-900);
+  outline-offset: 1px;
+}
+
+/* --- Attribution Table --- */
+.attribution-table {
+  width: 100%;
+  border-collapse: collapse;
+  font-size: 14px;
+}
+
+.attribution-table th {
+  text-align: left;
+  font-weight: 600;
+  color: var(--gray-500);
+  font-size: 13px;
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+  white-space: nowrap;
+  width: 140px;
+}
+
+.attribution-table td {
+  padding: 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+  color: var(--gray-700);
+  word-break: break-word;
+}
+
+.attribution-table tr:last-child th,
+.attribution-table tr:last-child td { border-bottom: none; }
+
+.attribution-table code {
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  font-family: var(--font-mono);
+  color: var(--gray-800);
+}
+
+/* --- Collapsible Details --- */
+details.section { padding: 0; }
+
+details.section summary {
+  padding: 16px 24px;
+  font-size: 16px;
+  font-weight: 700;
+  color: var(--gray-900);
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  user-select: none;
+  transition: background 0.15s ease;
+}
+
+details.section summary:hover { background: var(--gray-50); }
+details.section summary::-webkit-details-marker { display: none; }
+
+details.section summary::before {
+  content: "";
+  display: inline-block;
+  width: 7px; height: 7px;
+  border-right: 2px solid var(--gray-400);
+  border-bottom: 2px solid var(--gray-400);
+  transform: rotate(-45deg);
+  transition: transform 0.2s ease;
+  flex-shrink: 0;
+}
+
+details[open].section summary::before { transform: rotate(45deg); }
+details[open].section summary { border-bottom: 1px solid var(--gray-200); }
+details.section .details-body { padding: 24px; }
+
+/* --- Prose in sections/details --- */
+.details-body p, .section p {
+  font-size: 15px;
+  color: var(--gray-700);
+  line-height: 1.7;
+  margin-bottom: 10px;
+}
+
+.details-body p:last-child { margin-bottom: 0; }
+.details-body strong, .section strong { font-weight: 600; color: var(--gray-900); }
+
+.details-body ul, .details-body ol { margin: 10px 0; padding-left: 22px; }
+
+.details-body li {
+  font-size: 15px;
+  color: var(--gray-700);
+  line-height: 1.7;
+  margin-bottom: 4px;
+}
+
+/* --- Code Blocks --- */
+pre {
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
+  border-radius: 6px;
+  padding: 16px 20px;
+  overflow-x: auto;
+  font-size: 13px;
+  line-height: 1.6;
+  margin: 12px 0;
+}
+
+pre code {
+  font-family: var(--font-mono);
+  background: none;
+  padding: 0;
+  color: var(--gray-800);
+  font-size: inherit;
+}
+
+code {
+  font-family: var(--font-mono);
+  background: var(--gray-100);
+  padding: 2px 6px;
+  border-radius: 4px;
+  font-size: 13px;
+  color: var(--gray-800);
+}
+
+/* --- Verification Steps --- */
+.verify-steps {
+  counter-reset: verify-step;
+  list-style: none;
+  padding: 0;
+}
+
+.verify-steps li {
+  counter-increment: verify-step;
+  padding: 8px 0 8px 36px;
+  position: relative;
+  font-size: 14px;
+  line-height: 1.6;
+  color: var(--gray-700);
+}
+
+.verify-steps li::before {
+  content: counter(verify-step);
+  position: absolute;
+  left: 0; top: 8px;
+  width: 24px; height: 24px;
+  background: var(--gray-100);
+  border-radius: 50%;
+  font-size: 12px;
+  font-weight: 700;
+  color: var(--gray-600);
+  text-align: center;
+  line-height: 24px;
+}
+
+.verify-steps li + li { border-top: 1px solid var(--gray-100); }
+
+/* --- Footer --- */
+.report-footer {
+  text-align: center;
+  padding: 32px 20px 0;
+  font-size: 12px;
+  color: var(--gray-400);
+  line-height: 1.7;
+}
+
+.report-footer .footer-line { margin-bottom: 4px; }
+.report-footer .footer-brand { font-weight: 600; color: var(--gray-500); }
+
+.rum-note {
+  margin-top: 16px;
+  padding: 12px 16px;
+  background: #fff;
+  border: 1px solid var(--gray-200);
+  border-radius: var(--radius);
+  font-size: 12px;
+  color: var(--gray-500);
+  max-width: 640px;
+  margin-left: auto;
+  margin-right: auto;
+  line-height: 1.6;
+}
+
+/* --- Responsive --- */
+@media (max-width: 640px) {
+  .report-container { padding: 12px 10px 32px; }
+  .report-header { padding: 28px 16px 24px; }
+  .report-header h1 { font-size: 22px; }
+  .metric-cards { flex-direction: column; padding: 12px; }
+  .metric-card { min-width: 0; flex: 1 1 100%; }
+  .section { padding: 16px; }
+  details.section .details-body { padding: 16px; }
+  details.section summary { padding: 12px 16px; font-size: 15px; }
+  .waterfall-legend { gap: 10px; font-size: 11px; }
+  pre { padding: 12px 14px; font-size: 12px; }
+}
+
+/* --- Print --- */
+@media print {
+  body { background: #fff; }
+  .report-container { max-width: 100%; padding: 0; }
   .report-header {
-    background: linear-gradient(135deg, #1a1a2e 0%, #16213e 100%);
-    color: #fff;
-    padding: 36px 32px 28px;
-    border-radius: 12px;
-    margin-bottom: 28px;
-    position: relative;
+    background: var(--gray-900) !important;
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+    break-after: avoid;
   }
-
-  .report-header h1 {
-    font-size: 1.75rem;
-    font-weight: 700;
-    letter-spacing: -0.02em;
-    margin-bottom: 6px;
+  .section, .metric-card, .metric-cards { box-shadow: none; break-inside: avoid; }
+  details.section { break-inside: auto; }
+  .waterfall-bar-container, .dist-track, .dist-fill {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-
-  .report-header .subtitle {
-    font-size: 0.95rem;
-    color: #a0aec0;
-    line-height: 1.5;
+  .mc-badge, .seg-good, .seg-ni, .seg-poor, .p75-dot, .waterfall-segment {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
   }
-
-  .report-header .subtitle a {
-    color: #63b3ed;
-    text-decoration: none;
-  }
-
-  .report-header .powered-by {
-    position: absolute;
-    bottom: 12px;
-    right: 20px;
-    font-size: 0.7rem;
-    color: #5a6a8a;
-    letter-spacing: 0.02em;
-  }
-
-  /* ===== Section Cards ===== */
-  .section-card {
-    background: #fff;
-    border-radius: 10px;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.06), 0 1px 2px rgba(0,0,0,0.04);
-    margin-bottom: 20px;
-    overflow: hidden;
-  }
-
-  .section-card > .section-body {
-    padding: 24px 28px;
-  }
-
-  /* ===== Details / Collapsible ===== */
-  details.section-card {
-    border: none;
-  }
-
-  details.section-card > summary {
-    padding: 18px 28px;
-    font-size: 1.05rem;
-    font-weight: 600;
-    cursor: pointer;
-    list-style: none;
-    display: flex;
-    align-items: center;
-    gap: 10px;
-    user-select: none;
-    border-bottom: 1px solid transparent;
-    transition: background 0.15s ease;
-  }
-
-  details.section-card > summary::-webkit-details-marker {
-    display: none;
-  }
-
-  details.section-card > summary::before {
-    content: "\25B6";
-    font-size: 0.65rem;
-    transition: transform 0.2s ease;
-    display: inline-block;
-    color: #718096;
-  }
-
-  details[open].section-card > summary::before {
-    transform: rotate(90deg);
-  }
-
-  details.section-card > summary:hover {
-    background: #f9fafb;
-  }
-
-  details[open].section-card > summary {
-    border-bottom: 1px solid #edf0f4;
-  }
-
-  details.section-card > .section-body {
-    padding: 24px 28px;
-  }
-
-  /* ===== Section Labels ===== */
-  .section-label {
-    font-size: 0.7rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.08em;
-    color: #a0aec0;
-    margin-bottom: 4px;
-  }
-
-  /* ===== Executive Summary ===== */
-  .executive-summary p {
-    font-size: 1rem;
-    color: #2d3748;
-    line-height: 1.7;
-  }
-
-  /* ===== Metric Cards (CoreDash style) ===== */
-  .metric-cards-grid {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 16px;
-  }
-
-  .metric-card {
-    flex: 1 1 240px;
-    min-width: 220px;
-    max-width: 100%;
-    background: #fff;
-    border: 1px solid #e2e8f0;
-    border-radius: 10px;
-    padding: 20px 22px 16px;
-    transition: box-shadow 0.15s ease;
-  }
-
-  .metric-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-  }
-
-  .mc-header {
-    display: flex;
-    justify-content: space-between;
-    align-items: baseline;
-    margin-bottom: 2px;
-  }
-
-  .mc-title {
-    font-size: 16px;
-    font-weight: 700;
-    color: #1a1a2e;
-  }
-
-  .mc-value {
-    font-size: 22px;
-    font-weight: 700;
-    color: #1a1a2e;
-    font-variant-numeric: tabular-nums;
-  }
-
-  .mc-value .unit {
-    font-size: 13px;
-    font-weight: 500;
-    color: #a0aec0;
-    margin-left: 1px;
-  }
-
-  .mc-subtitle {
-    display: flex;
-    justify-content: space-between;
-    align-items: center;
-    margin-bottom: 14px;
-  }
-
-  .mc-metric-name {
-    font-size: 13px;
-    color: #718096;
-  }
-
-  .mc-badge {
-    display: inline-block;
-    padding: 2px 10px;
-    border-radius: 4px;
-    font-size: 12px;
-    font-weight: 600;
-    color: #fff;
-  }
-
-  .mc-badge.good { background: #0cad5a; }
-  .mc-badge.needs-improvement { background: #e69500; }
-  .mc-badge.poor { background: #e53e3e; }
-
-  /* Distribution track with p75 marker */
-  .dist-track {
-    position: relative;
-    height: 10px;
-    background: #edf2f7;
-    border-radius: 5px;
-    margin-bottom: 12px;
-  }
-
-  .dist-fill {
-    display: flex;
-    height: 100%;
-    border-radius: 5px;
-    overflow: hidden;
-    width: 100%;
-  }
-
-  .dist-fill .seg-good { background: #0cad5a; }
-  .dist-fill .seg-ni { background: #e69500; }
-  .dist-fill .seg-poor { background: #e53e3e; }
-
-  .p75-dot {
-    position: absolute;
-    top: 50%;
-    transform: translate(-50%, -50%);
-    width: 14px;
-    height: 14px;
-    border-radius: 50%;
-    background: #fff;
-    border: 3px solid #1a1a2e;
-    z-index: 2;
-    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
-  }
-
-  .mc-footer {
-    display: flex;
-    gap: 10px;
-    align-items: center;
-    flex-wrap: wrap;
-  }
-
-  .mc-pill {
-    display: inline-flex;
-    align-items: center;
-    gap: 4px;
-    font-size: 12px;
-    color: #718096;
-    background: #f7fafc;
-    border: 1px solid #e2e8f0;
-    border-radius: 4px;
-    padding: 2px 8px;
-    font-weight: 500;
-  }
-
-  .mc-pill.trend-improving { color: #0cad5a; }
-  .mc-pill.trend-worsening { color: #e53e3e; }
-  .mc-pill.trend-stable { color: #a0aec0; }
-
-  /* ===== Breakdown Waterfall ===== */
-  .breakdown-container {
-    margin-top: 4px;
-  }
-
-  .breakdown-label {
-    font-size: 0.85rem;
-    font-weight: 600;
-    color: #4a5568;
-    margin-bottom: 10px;
-  }
-
-  .breakdown-bar {
-    display: flex;
-    height: 40px;
-    border-radius: 6px;
-    overflow: hidden;
-    background: #edf0f4;
-    margin-bottom: 8px;
-  }
-
-  .breakdown-segment {
-    display: flex;
-    align-items: center;
-    justify-content: center;
-    flex-direction: column;
-    color: #fff;
-    font-size: 0.7rem;
-    font-weight: 600;
-    line-height: 1.3;
-    padding: 2px 6px;
-    min-width: 0;
-    overflow: hidden;
-    white-space: nowrap;
-    text-overflow: ellipsis;
-    transition: width 0.4s ease;
-  }
-
-  .breakdown-segment .phase-name {
-    font-size: 0.6rem;
-    font-weight: 500;
-    opacity: 0.9;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .breakdown-segment .phase-value {
-    font-size: 0.75rem;
-    font-weight: 700;
-  }
-
-  /* Phase colors */
-  .phase-ttfb       { background: #4299e1; }
-  .phase-loaddelay  { background: #667eea; }
-  .phase-loadtime   { background: #9f7aea; }
-  .phase-renderdelay{ background: #ed64a6; }
-  .phase-inputdelay { background: #4299e1; }
-  .phase-processing { background: #9f7aea; }
-  .phase-presentation { background: #ed64a6; }
-
-  /* Bottleneck highlight */
-  .breakdown-segment.bottleneck {
-    outline: 3px solid #1a1a2e;
-    outline-offset: -3px;
-    position: relative;
-    z-index: 1;
-  }
-
-  .breakdown-legend {
-    display: flex;
-    flex-wrap: wrap;
-    gap: 12px;
-    margin-top: 6px;
-  }
-
-  .legend-item {
-    display: flex;
-    align-items: center;
-    gap: 5px;
-    font-size: 0.75rem;
-    color: #4a5568;
-  }
-
-  .legend-swatch {
-    width: 10px;
-    height: 10px;
-    border-radius: 2px;
-    flex-shrink: 0;
-  }
-
-  .legend-item.is-bottleneck .legend-swatch {
-    outline: 2px solid #1a1a2e;
-    outline-offset: 1px;
-  }
-
-  /* ===== Attribution ===== */
-  .attribution-table {
-    width: 100%;
-    border-collapse: collapse;
-    font-size: 0.88rem;
-  }
-
-  .attribution-table th {
-    text-align: left;
-    font-weight: 600;
-    color: #718096;
-    padding: 8px 12px 8px 0;
-    border-bottom: 1px solid #edf0f4;
-    white-space: nowrap;
-    width: 140px;
-    font-size: 0.8rem;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-  }
-
-  .attribution-table td {
-    padding: 8px 0;
-    border-bottom: 1px solid #edf0f4;
-    color: #2d3748;
-    word-break: break-word;
-  }
-
-  .attribution-table code {
-    background: #edf2f7;
-    padding: 2px 6px;
-    border-radius: 4px;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 0.82rem;
-    color: #c53030;
-  }
-
-  /* ===== Code Blocks ===== */
-  pre {
-    background: #f7f8fa;
-    border: 1px solid #e2e8f0;
-    border-radius: 8px;
-    padding: 16px 20px;
-    overflow-x: auto;
-    margin: 12px 0;
-    line-height: 1.55;
-  }
-
-  pre code {
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 0.82rem;
-    color: #2d3748;
-    background: none;
-    padding: 0;
-    border-radius: 0;
-  }
-
-  /* ===== Prose inside sections ===== */
-  .section-body p {
-    font-size: 0.95rem;
-    color: #2d3748;
-    line-height: 1.7;
-    margin-bottom: 10px;
-  }
-
-  .section-body p:last-child {
-    margin-bottom: 0;
-  }
-
-  .section-body ul,
-  .section-body ol {
-    margin: 10px 0;
-    padding-left: 22px;
-  }
-
-  .section-body li {
-    font-size: 0.95rem;
-    color: #2d3748;
-    line-height: 1.7;
-    margin-bottom: 4px;
-  }
-
-  .section-body strong {
-    font-weight: 600;
-    color: #1a1a2e;
-  }
-
-  /* ===== Footer ===== */
-  .report-footer {
-    text-align: center;
-    padding: 32px 20px 16px;
-    font-size: 0.78rem;
-    color: #a0aec0;
-    line-height: 1.8;
-  }
-
-  .report-footer .footer-brand {
-    font-weight: 600;
-    color: #718096;
-  }
-
-  .report-footer .rum-note {
-    margin-top: 12px;
-    padding: 12px 16px;
-    background: #fff;
-    border: 1px dashed #cbd5e0;
-    border-radius: 8px;
-    font-size: 0.75rem;
-    color: #718096;
-    max-width: 640px;
-    margin-left: auto;
-    margin-right: auto;
-    line-height: 1.6;
-  }
-
-  .report-footer .rum-note code {
-    background: #edf2f7;
-    padding: 1px 5px;
-    border-radius: 3px;
-    font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
-    font-size: 0.72rem;
-  }
-
-  /* ===== Responsive ===== */
-  @media (max-width: 640px) {
-    .report-wrapper {
-      padding: 12px 10px 32px;
-    }
-
-    .report-header {
-      padding: 24px 20px 22px;
-      border-radius: 8px;
-    }
-
-    .report-header h1 {
-      font-size: 1.35rem;
-    }
-
-    .report-header .powered-by {
-      position: static;
-      display: block;
-      margin-top: 10px;
-    }
-
-    .section-card > .section-body,
-    details.section-card > .section-body {
-      padding: 16px 18px;
-    }
-
-    details.section-card > summary {
-      padding: 14px 18px;
-      font-size: 0.95rem;
-    }
-
-    .metric-cards-grid {
-      gap: 12px;
-    }
-
-    .metric-card {
-      flex: 1 1 100%;
-      min-width: 0;
-    }
-
-    .breakdown-segment .phase-name {
-      font-size: 0.5rem;
-    }
-
-    .breakdown-segment .phase-value {
-      font-size: 0.65rem;
-    }
-
-    pre {
-      padding: 12px 14px;
-    }
-
-    pre code {
-      font-size: 0.75rem;
-    }
-  }
-
-  /* ===== Print ===== */
-  @media print {
-    body {
-      background: #fff;
-      color: #000;
-      font-size: 11pt;
-    }
-
-    .report-wrapper {
-      max-width: 100%;
-      padding: 0;
-    }
-
-    .report-header {
-      background: #1a1a2e !important;
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-      break-after: avoid;
-    }
-
-    .section-card {
-      box-shadow: none;
-      border: 1px solid #ddd;
-      break-inside: avoid;
-    }
-
-    details.section-card {
-      border: 1px solid #ddd;
-    }
-
-    details.section-card > summary {
-      font-size: 0.95rem;
-    }
-
-    /* Force all details open for print */
-    details.section-card {
-      open: true;
-    }
-
-    details.section-card > .section-body {
-      display: block !important;
-    }
-
-    .metric-card {
-      border: 1px solid #ddd;
-      break-inside: avoid;
-    }
-
-    .seg-good,
-    .seg-ni,
-    .seg-poor,
-    .p75-dot,
-    .mc-badge,
-    .breakdown-segment {
-      -webkit-print-color-adjust: exact;
-      print-color-adjust: exact;
-    }
-
-    .report-footer .rum-note {
-      border: 1px solid #ccc;
-    }
-
-    pre {
-      border: 1px solid #ddd;
-      white-space: pre-wrap;
-      word-wrap: break-word;
-    }
-  }
+  pre { white-space: pre-wrap; word-wrap: break-word; }
+}
 </style>
 </head>
 <body>
 
-<div class="report-wrapper">
+<div class="report-container">
 
-  <!-- ===== HEADER ===== -->
+  <!-- SECTION:HEADER -->
   <header class="report-header">
     <h1>Core Web Vitals Report</h1>
-    <!-- SECTION:SUBTITLE -->
-    <div class="subtitle">
-      <strong>URL:</strong> <a href="https://example.com/page">https://example.com/page</a><br>
-      <strong>Generated:</strong> March 6, 2026
-    </div>
-    <!-- /SECTION:SUBTITLE -->
+    <!-- Agent: Replace title above with metric-specific title, e.g. "LCP Performance Report" -->
+    <div class="subtitle">URL and date go here</div>
+    <!-- Agent: Replace subtitle with target URL and report date -->
     <div class="powered-by">Powered by CoreDash</div>
   </header>
+  <!-- /SECTION:HEADER -->
 
-  <!-- ===== EXECUTIVE SUMMARY ===== -->
-  <div class="section-card">
-    <div class="section-body executive-summary">
-      <div class="section-label">Executive Summary</div>
-      <!-- SECTION:EXECUTIVE_SUMMARY -->
-      <p>Replace with executive summary.</p>
-      <!-- /SECTION:EXECUTIVE_SUMMARY -->
+  <!-- SECTION:EXECUTIVE_SUMMARY -->
+  <div class="section">
+    <h2 class="section-title">Executive Summary</h2>
+    <div class="executive-summary">
+      <!-- Agent: Replace with 2-4 sentence executive summary covering the key finding,
+           the metric value, the element, and the recommended action. -->
+      <p>Executive summary placeholder. The agent will replace this with a concise overview of the findings, root cause, and recommended fix.</p>
     </div>
   </div>
+  <!-- /SECTION:EXECUTIVE_SUMMARY -->
 
-  <!-- ===== METRIC CARDS ===== -->
-  <div class="section-card">
-    <div class="section-body">
-      <div class="section-label">Core Web Vitals</div>
-      <!-- SECTION:METRIC_CARDS -->
-      <!-- Agent: Replace with metric card HTML. One card per metric.
-           Structure per card:
-           - mc-header: metric short name (left) + p75 value with unit (right)
-           - mc-subtitle: full metric name (left) + rating badge (right)
-           - dist-track: distribution bar with good/NI/poor segments + p75 dot marker
-             Set p75 dot left% = good%. Segments: seg-good width=good%, seg-ni width=NI%, seg-poor width=poor%
-           - mc-footer: samples pill + trend pill (add trend-improving/trend-worsening/trend-stable class) -->
-      <div class="metric-cards-grid">
+  <!-- SECTION:METRIC_CARDS -->
+  <div class="metric-cards">
+    <!-- Agent: Replace these cards with actual metric data.
+         Structure per card:
+         - mc-header: metric short name (left) + p75 value with unit (right)
+         - mc-subtitle: full metric name (left) + rating badge (right)
+         - dist-track: distribution bar with good/NI/poor segments + p75 dot marker
+           Set p75 dot left% = good%. Segments: seg-good width=good%, seg-ni width=NI%, seg-poor width=poor%
+         - mc-footer: samples pill + trend pill (add trend-improving/trend-worsening/trend-stable class)
+         Include only metrics relevant to the page (typically LCP, INP, CLS; optionally FCP, TTFB). -->
 
-        <div class="metric-card">
-          <div class="mc-header">
-            <div class="mc-title">LCP</div>
-            <div class="mc-value">3.82<span class="unit">s</span></div>
-          </div>
-          <div class="mc-subtitle">
-            <span class="mc-metric-name">Largest Contentful Paint</span>
-            <span class="mc-badge poor">poor</span>
-          </div>
-          <div class="dist-track">
-            <div class="dist-fill">
-              <div class="seg-good" style="width: 32%"></div>
-              <div class="seg-ni" style="width: 28%"></div>
-              <div class="seg-poor" style="width: 40%"></div>
-            </div>
-            <div class="p75-dot" style="left: 32%"></div>
-          </div>
-          <div class="mc-footer">
-            <span class="mc-pill">samples: 1,240</span>
-            <span class="mc-pill trend-worsening">trend: &#8599; 12%</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="mc-header">
-            <div class="mc-title">INP</div>
-            <div class="mc-value">142<span class="unit">ms</span></div>
-          </div>
-          <div class="mc-subtitle">
-            <span class="mc-metric-name">Interaction to Next Paint</span>
-            <span class="mc-badge good">good</span>
-          </div>
-          <div class="dist-track">
-            <div class="dist-fill">
-              <div class="seg-good" style="width: 78%"></div>
-              <div class="seg-ni" style="width: 14%"></div>
-              <div class="seg-poor" style="width: 8%"></div>
-            </div>
-            <div class="p75-dot" style="left: 78%"></div>
-          </div>
-          <div class="mc-footer">
-            <span class="mc-pill">samples: 890</span>
-            <span class="mc-pill trend-improving">trend: &#8600; 5%</span>
-          </div>
-        </div>
-
-        <div class="metric-card">
-          <div class="mc-header">
-            <div class="mc-title">CLS</div>
-            <div class="mc-value">0.18</div>
-          </div>
-          <div class="mc-subtitle">
-            <span class="mc-metric-name">Cumulative Layout Shift</span>
-            <span class="mc-badge needs-improvement">needs improvement</span>
-          </div>
-          <div class="dist-track">
-            <div class="dist-fill">
-              <div class="seg-good" style="width: 44%"></div>
-              <div class="seg-ni" style="width: 36%"></div>
-              <div class="seg-poor" style="width: 20%"></div>
-            </div>
-            <div class="p75-dot" style="left: 44%"></div>
-          </div>
-          <div class="mc-footer">
-            <span class="mc-pill">samples: 1,240</span>
-            <span class="mc-pill trend-stable">trend: &#8594; flat</span>
-          </div>
-        </div>
-
+    <div class="metric-card">
+      <div class="mc-header">
+        <div class="mc-title">LCP</div>
+        <div class="mc-value">3.82<span class="unit">s</span></div>
       </div>
-      <!-- /SECTION:METRIC_CARDS -->
+      <div class="mc-subtitle">
+        <span class="mc-metric-name">Largest Contentful Paint</span>
+        <span class="mc-badge poor">poor</span>
+      </div>
+      <div class="dist-track">
+        <div class="dist-fill">
+          <div class="seg-good" style="width: 38%"></div>
+          <div class="seg-ni" style="width: 30%"></div>
+          <div class="seg-poor" style="width: 32%"></div>
+        </div>
+        <div class="p75-dot" style="left: 38%"></div>
+      </div>
+      <div class="mc-footer">
+        <span class="mc-pill">samples: 1,240</span>
+        <span class="mc-pill trend-worsening">trend: &#8599; 8.9%</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="mc-header">
+        <div class="mc-title">INP</div>
+        <div class="mc-value">120<span class="unit">ms</span></div>
+      </div>
+      <div class="mc-subtitle">
+        <span class="mc-metric-name">Interaction to Next Paint</span>
+        <span class="mc-badge good">good</span>
+      </div>
+      <div class="dist-track">
+        <div class="dist-fill">
+          <div class="seg-good" style="width: 82%"></div>
+          <div class="seg-ni" style="width: 14%"></div>
+          <div class="seg-poor" style="width: 4%"></div>
+        </div>
+        <div class="p75-dot" style="left: 82%"></div>
+      </div>
+      <div class="mc-footer">
+        <span class="mc-pill">samples: 890</span>
+        <span class="mc-pill trend-stable">trend: &#8594; flat</span>
+      </div>
+    </div>
+
+    <div class="metric-card">
+      <div class="mc-header">
+        <div class="mc-title">CLS</div>
+        <div class="mc-value">0.14</div>
+      </div>
+      <div class="mc-subtitle">
+        <span class="mc-metric-name">Cumulative Layout Shift</span>
+        <span class="mc-badge needs-improvement">needs improvement</span>
+      </div>
+      <div class="dist-track">
+        <div class="dist-fill">
+          <div class="seg-good" style="width: 55%"></div>
+          <div class="seg-ni" style="width: 28%"></div>
+          <div class="seg-poor" style="width: 17%"></div>
+        </div>
+        <div class="p75-dot" style="left: 55%"></div>
+      </div>
+      <div class="mc-footer">
+        <span class="mc-pill">samples: 1,240</span>
+        <span class="mc-pill trend-improving">trend: &#8600; 3.2%</span>
+      </div>
     </div>
   </div>
+  <!-- /SECTION:METRIC_CARDS -->
 
-  <!-- ===== BREAKDOWN WATERFALL ===== -->
-  <details class="section-card" open>
-    <summary>Metric Breakdown</summary>
-    <div class="section-body">
-      <!-- SECTION:BREAKDOWN -->
-      <!-- Agent: Replace with breakdown bar. Highlight the bottleneck phase. -->
-      <div class="breakdown-container">
-        <div class="breakdown-label">LCP Breakdown (p75 = 3,820 ms)</div>
-        <div class="breakdown-bar">
-          <div class="breakdown-segment phase-ttfb" style="width: 21%">
-            <span class="phase-name">TTFB</span>
-            <span class="phase-value">800 ms</span>
-          </div>
-          <div class="breakdown-segment phase-loaddelay bottleneck" style="width: 39%">
-            <span class="phase-name">Load Delay</span>
-            <span class="phase-value">1,500 ms</span>
-          </div>
-          <div class="breakdown-segment phase-loadtime" style="width: 26%">
-            <span class="phase-name">Load Time</span>
-            <span class="phase-value">1,000 ms</span>
-          </div>
-          <div class="breakdown-segment phase-renderdelay" style="width: 14%">
-            <span class="phase-name">Render Delay</span>
-            <span class="phase-value">520 ms</span>
-          </div>
+  <!-- SECTION:BREAKDOWN -->
+  <div class="section">
+    <h2 class="section-title">Phase Breakdown</h2>
+    <div class="breakdown-waterfall">
+      <!-- Agent: Replace bar widths with actual phase proportions.
+           Add class "bottleneck" to the dominant phase segment.
+           Adjust segment classes based on metric:
+             LCP: seg-ttfb, seg-loaddelay, seg-loadtime, seg-renderdelay
+             INP: seg-inputdelay, seg-processing, seg-presentation
+             CLS: seg-before, seg-shift, seg-after
+           Set width as percentage of total. -->
+      <div class="waterfall-bar-container">
+        <div class="waterfall-segment seg-ttfb" style="width: 16%" title="TTFB: 620ms (16%)">TTFB</div>
+        <div class="waterfall-segment seg-loaddelay bottleneck" style="width: 52%" title="LOADDELAY: 1,980ms (52%)">LOADDELAY</div>
+        <div class="waterfall-segment seg-loadtime" style="width: 22%" title="LOADTIME: 840ms (22%)">LOADTIME</div>
+        <div class="waterfall-segment seg-renderdelay" style="width: 10%" title="RENDERDELAY: 380ms (10%)">RENDERDELAY</div>
+      </div>
+      <div class="waterfall-legend">
+        <div class="waterfall-legend-item">
+          <span class="swatch seg-ttfb"></span> TTFB: 620ms (16%)
         </div>
-        <div class="breakdown-legend">
-          <div class="legend-item">
-            <span class="legend-swatch" style="background: #4299e1;"></span> TTFB
-          </div>
-          <div class="legend-item is-bottleneck">
-            <span class="legend-swatch" style="background: #667eea;"></span> Load Delay (bottleneck)
-          </div>
-          <div class="legend-item">
-            <span class="legend-swatch" style="background: #9f7aea;"></span> Load Time
-          </div>
-          <div class="legend-item">
-            <span class="legend-swatch" style="background: #ed64a6;"></span> Render Delay
-          </div>
+        <div class="waterfall-legend-item is-bottleneck">
+          <span class="swatch seg-loaddelay"></span> LOADDELAY: 1,980ms (52%)
+        </div>
+        <div class="waterfall-legend-item">
+          <span class="swatch seg-loadtime"></span> LOADTIME: 840ms (22%)
+        </div>
+        <div class="waterfall-legend-item">
+          <span class="swatch seg-renderdelay"></span> RENDERDELAY: 380ms (10%)
         </div>
       </div>
-      <!-- /SECTION:BREAKDOWN -->
     </div>
-  </details>
+  </div>
+  <!-- /SECTION:BREAKDOWN -->
 
-  <!-- ===== ATTRIBUTION ===== -->
-  <details class="section-card" open>
-    <summary>Attribution</summary>
-    <div class="section-body">
-      <!-- SECTION:ATTRIBUTION -->
-      <!-- Agent: Replace with attribution details. -->
-      <table class="attribution-table">
-        <tr>
-          <th>Element</th>
-          <td><code>&lt;img src="/hero.jpg" ...&gt;</code></td>
-        </tr>
-        <tr>
-          <th>Resource URL</th>
-          <td>https://example.com/hero.jpg</td>
-        </tr>
-        <tr>
-          <th>Resource Type</th>
-          <td>Image</td>
-        </tr>
-        <tr>
-          <th>Priority</th>
-          <td>Low (not preloaded, not fetchpriority="high")</td>
-        </tr>
-        <tr>
-          <th>Context</th>
-          <td>The LCP element is a hero image loaded without a preload hint. The browser discovers it late because it is referenced only in CSS or lazy-loaded markup.</td>
-        </tr>
-      </table>
-      <!-- /SECTION:ATTRIBUTION -->
-    </div>
-  </details>
+  <!-- SECTION:ATTRIBUTION -->
+  <div class="section">
+    <h2 class="section-title">Attribution</h2>
+    <table class="attribution-table">
+      <!-- Agent: Replace table rows with actual attribution data.
+           Use th as row label (first cell), td as value (second cell).
+           Adjust fields based on metric:
+             LCP: Element, Type, Resource URL, Priority
+             INP: Element, Event type, Load state, Script URL
+             CLS: Element, Shift source, Previous/Current rects -->
+      <tr>
+        <th>Element</th>
+        <td><code>div.hero-banner &gt; img.product-main</code></td>
+      </tr>
+      <tr>
+        <th>Type</th>
+        <td>Image</td>
+      </tr>
+      <tr>
+        <th>Resource URL</th>
+        <td><code>https://cdn.example.com/images/hero.jpg</code></td>
+      </tr>
+      <tr>
+        <th>Device</th>
+        <td>Mobile</td>
+      </tr>
+    </table>
+  </div>
+  <!-- /SECTION:ATTRIBUTION -->
 
-  <!-- ===== ROOT CAUSE ===== -->
-  <details class="section-card" open>
-    <summary>Root Cause</summary>
-    <div class="section-body">
-      <!-- SECTION:ROOT_CAUSE -->
-      <!-- Agent: Replace with root cause analysis. -->
-      <p>Replace with the combined root cause statement explaining why this metric is underperforming.</p>
-      <!-- /SECTION:ROOT_CAUSE -->
-    </div>
-  </details>
+  <!-- SECTION:ROOT_CAUSE -->
+  <div class="section">
+    <h2 class="section-title">Root Cause Analysis</h2>
+    <!-- Agent: Replace with root cause analysis prose.
+         For RUM-only reports, include:
+         - Root cause: one sentence naming the element, the cause, and the impact
+         - Evidence from real users (CoreDash): 2-3 sentences with metric value, element selector,
+           bottleneck phase with %, device segment, and trend
+         - Chrome would confirm: one sentence describing what a Chrome trace would show -->
+    <p><strong>Root cause:</strong> Root cause placeholder.</p>
+    <p><strong>Evidence from real users (CoreDash):</strong> RUM evidence placeholder.</p>
+    <p><strong>Chrome would confirm:</strong> Chrome prediction placeholder.</p>
+  </div>
+  <!-- /SECTION:ROOT_CAUSE -->
 
-  <!-- ===== RECOMMENDED FIX ===== -->
-  <details class="section-card" open>
+  <!-- SECTION:RECOMMENDED_FIX -->
+  <details class="section" open>
     <summary>Recommended Fix</summary>
-    <div class="section-body">
-      <!-- SECTION:RECOMMENDED_FIX -->
-      <!-- Agent: Replace with specific fix and code example. -->
-      <p>Replace with a specific, actionable fix recommendation.</p>
-      <pre><code>&lt;!-- Example: Add a preload hint for the LCP image --&gt;
-&lt;link rel="preload" as="image" href="/hero.jpg" fetchpriority="high"&gt;</code></pre>
-      <!-- /SECTION:RECOMMENDED_FIX -->
+    <div class="details-body">
+      <!-- Agent: Replace with specific fix description and code example. -->
+      <p>Fix description placeholder.</p>
+      <pre><code>&lt;!-- Example: Add preload for the LCP image --&gt;
+&lt;link rel="preload" href="/images/hero.jpg" as="image" fetchpriority="high" /&gt;
+
+&lt;!-- And add fetchpriority to the img element --&gt;
+&lt;img src="/images/hero.jpg" alt="Hero" fetchpriority="high" /&gt;</code></pre>
     </div>
   </details>
+  <!-- /SECTION:RECOMMENDED_FIX -->
 
-  <!-- ===== HOW TO VERIFY ===== -->
-  <details class="section-card">
+  <!-- SECTION:HOW_TO_VERIFY -->
+  <details class="section">
     <summary>How to Verify</summary>
-    <div class="section-body">
-      <!-- SECTION:HOW_TO_VERIFY -->
+    <div class="details-body">
       <!-- Agent: Replace with verification steps. -->
-      <p>Replace with instructions on what to check in CoreDash after the fix ships.</p>
-      <!-- /SECTION:HOW_TO_VERIFY -->
+      <ol class="verify-steps">
+        <li>Deploy the change to a staging environment or use a local preview.</li>
+        <li>Run a Lighthouse audit on the affected page and confirm the metric has improved.</li>
+        <li>Monitor CoreDash over the next 3-7 days to verify the p75 value drops below the "good" threshold.</li>
+        <li>Check the distribution — confirm the percentage of page loads in the "poor" bucket has decreased.</li>
+      </ol>
     </div>
   </details>
+  <!-- /SECTION:HOW_TO_VERIFY -->
 
-  <!-- ===== FOOTER ===== -->
+  <!-- SECTION:FOOTER -->
   <footer class="report-footer">
-    <div class="footer-brand">Generated by CWV Superpower</div>
-    <div>Data source: CoreDash Real User Monitoring</div>
+    <div class="footer-line footer-brand">Generated by CWV Superpower</div>
+    <div class="footer-line">Data source: CoreDash Real User Monitoring</div>
     <div class="rum-note">
-      This report is based on RUM data only. A full report with Chrome trace visuals (filmstrip, waterfall, flamechart)
+      This report is based on RUM data only. A full report with Chrome trace visuals (filmstrip, network waterfall, interaction timeline)
       is available when running with <code>claude --chrome</code>.
     </div>
   </footer>
+  <!-- /SECTION:FOOTER -->
 
 </div>
 
 <script>
-  // Force all details elements open when printing
+(function() {
+  'use strict';
+
+  // ---- Print: force details open ----
   window.addEventListener('beforeprint', function() {
-    document.querySelectorAll('details.section-card').forEach(function(el) {
+    document.querySelectorAll('details.section').forEach(function(el) {
       if (!el.hasAttribute('open')) {
         el.setAttribute('open', '');
         el.dataset.closedBeforePrint = 'true';
@@ -873,11 +764,12 @@
   });
 
   window.addEventListener('afterprint', function() {
-    document.querySelectorAll('details.section-card[data-closed-before-print]').forEach(function(el) {
+    document.querySelectorAll('details.section[data-closed-before-print]').forEach(function(el) {
       el.removeAttribute('open');
       delete el.dataset.closedBeforePrint;
     });
   });
+})();
 </script>
 
 </body>

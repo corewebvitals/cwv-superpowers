@@ -6,7 +6,7 @@
 <title>Core Web Vitals Report</title>
 <style>
 /* ============================================================
-   CWV Superpower — Full Report Styles
+   CWV Superpower — Unified Report Styles
    Self-contained, no external dependencies
    ============================================================ */
 
@@ -14,16 +14,19 @@
 *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
 :root {
-  --green: #0cce6b;
-  --orange: #ffa400;
-  --red: #ff4e42;
-  --green-bg: #e6faf0;
-  --orange-bg: #fff5e0;
-  --red-bg: #ffe8e6;
-  --green-border: #0cce6b;
-  --orange-border: #ffa400;
-  --red-border: #ff4e42;
-  --gray-50: #f9fafb;
+  /* CWV status (ratings only, never decorative) */
+  --cwv-good: #0cad5a;
+  --cwv-ni: #e69500;
+  --cwv-poor: #e53e3e;
+
+  /* Phase breakdown (blue-to-lilac, 4 steps) */
+  --phase-1: #4a5fa8;
+  --phase-2: #6474c4;
+  --phase-3: #7e8fd6;
+  --phase-4: #9ba5de;
+
+  /* Grayscale */
+  --gray-50:  #f9fafb;
   --gray-100: #f3f4f6;
   --gray-200: #e5e7eb;
   --gray-300: #d1d5db;
@@ -33,22 +36,29 @@
   --gray-700: #374151;
   --gray-800: #1f2937;
   --gray-900: #111827;
+
+  /* Typography */
+  --font-sans: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  --font-mono: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+
+  /* Surfaces */
   --radius: 8px;
-  --shadow: 0 1px 3px rgba(0,0,0,0.1), 0 1px 2px rgba(0,0,0,0.06);
-  --shadow-md: 0 4px 6px rgba(0,0,0,0.07), 0 2px 4px rgba(0,0,0,0.06);
+  --radius-lg: 10px;
+  --shadow: 0 1px 3px rgba(0,0,0,0.08), 0 1px 2px rgba(0,0,0,0.04);
 }
 
 body {
-  font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif;
+  font-family: var(--font-sans);
+  font-size: 14px;
   line-height: 1.6;
   color: var(--gray-800);
   background: var(--gray-50);
-  padding: 0;
-  margin: 0;
+  -webkit-text-size-adjust: 100%;
 }
 
+/* --- Layout --- */
 .report-container {
-  max-width: 900px;
+  max-width: 920px;
   margin: 0 auto;
   padding: 24px 20px 48px;
 }
@@ -56,7 +66,7 @@ body {
 /* --- Header --- */
 .report-header {
   text-align: center;
-  padding: 40px 20px 32px;
+  padding: 36px 24px 32px;
   margin-bottom: 32px;
   background: linear-gradient(135deg, var(--gray-900) 0%, var(--gray-700) 100%);
   color: #fff;
@@ -64,22 +74,27 @@ body {
 }
 
 .report-header h1 {
-  font-size: 28px;
+  font-size: 26px;
   font-weight: 700;
-  margin-bottom: 8px;
   letter-spacing: -0.5px;
+  margin-bottom: 8px;
 }
 
 .report-header .subtitle {
   font-size: 14px;
   color: var(--gray-300);
-  margin-bottom: 4px;
+  line-height: 1.5;
+}
+
+.report-header .subtitle a {
+  color: #93c5fd;
+  text-decoration: none;
 }
 
 .report-header .powered-by {
   font-size: 12px;
   color: var(--gray-400);
-  margin-top: 12px;
+  margin-top: 16px;
 }
 
 /* --- Sections --- */
@@ -89,7 +104,6 @@ body {
   border-radius: var(--radius);
   padding: 24px;
   margin-bottom: 20px;
-  box-shadow: var(--shadow);
 }
 
 .section-title {
@@ -108,35 +122,33 @@ body {
   color: var(--gray-700);
 }
 
-.executive-summary strong {
-  color: var(--gray-900);
-}
+.executive-summary strong { color: var(--gray-900); }
+.executive-summary p { margin-bottom: 10px; }
+.executive-summary p:last-child { margin-bottom: 0; }
 
 /* --- Metric Cards (CoreDash style) --- */
 .metric-cards {
   display: flex;
   gap: 16px;
   flex-wrap: wrap;
-  margin-bottom: 0;
+  padding: 20px;
   background: var(--gray-50);
   border: 1px solid var(--gray-200);
-  border-radius: 12px;
-  padding: 20px;
+  border-radius: var(--radius-lg);
+  margin-bottom: 20px;
 }
 
 .metric-card {
   flex: 1 1 240px;
+  min-width: 220px;
   background: #fff;
   border: 1px solid var(--gray-200);
-  border-radius: 10px;
+  border-radius: var(--radius-lg);
   padding: 20px 22px 16px;
-  min-width: 220px;
   transition: box-shadow 0.15s ease;
 }
 
-.metric-card:hover {
-  box-shadow: 0 4px 12px rgba(0,0,0,0.06);
-}
+.metric-card:hover { box-shadow: var(--shadow); }
 
 .mc-header {
   display: flex;
@@ -145,11 +157,7 @@ body {
   margin-bottom: 2px;
 }
 
-.mc-title {
-  font-size: 16px;
-  font-weight: 700;
-  color: var(--gray-900);
-}
+.mc-title { font-size: 16px; font-weight: 700; color: var(--gray-900); }
 
 .mc-value {
   font-size: 22px;
@@ -158,12 +166,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.mc-value .unit {
-  font-size: 13px;
-  font-weight: 500;
-  color: var(--gray-400);
-  margin-left: 1px;
-}
+.mc-value .unit { font-size: 13px; font-weight: 500; color: var(--gray-400); margin-left: 1px; }
 
 .mc-subtitle {
   display: flex;
@@ -172,10 +175,7 @@ body {
   margin-bottom: 14px;
 }
 
-.mc-metric-name {
-  font-size: 13px;
-  color: var(--gray-500);
-}
+.mc-metric-name { font-size: 13px; color: var(--gray-500); }
 
 .mc-badge {
   display: inline-block;
@@ -186,11 +186,10 @@ body {
   color: #fff;
 }
 
-.mc-badge.good { background: #0cad5a; }
-.mc-badge.needs-improvement { background: #e69500; }
-.mc-badge.poor { background: #e53e3e; }
+.mc-badge.good { background: var(--cwv-good); }
+.mc-badge.needs-improvement { background: var(--cwv-ni); }
+.mc-badge.poor { background: var(--cwv-poor); }
 
-/* Distribution track with p75 marker */
 .dist-track {
   position: relative;
   height: 10px;
@@ -207,9 +206,9 @@ body {
   width: 100%;
 }
 
-.dist-fill .seg-good { background: #0cad5a; }
-.dist-fill .seg-ni { background: #e69500; }
-.dist-fill .seg-poor { background: #e53e3e; }
+.dist-fill .seg-good { background: var(--cwv-good); }
+.dist-fill .seg-ni { background: var(--cwv-ni); }
+.dist-fill .seg-poor { background: var(--cwv-poor); }
 
 .p75-dot {
   position: absolute;
@@ -224,12 +223,7 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
-.mc-footer {
-  display: flex;
-  gap: 10px;
-  align-items: center;
-  flex-wrap: wrap;
-}
+.mc-footer { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
 .mc-pill {
   display: inline-flex;
@@ -244,14 +238,12 @@ body {
   font-weight: 500;
 }
 
-.mc-pill.trend-improving { color: #0cad5a; }
-.mc-pill.trend-worsening { color: #e53e3e; }
+.mc-pill.trend-improving { color: var(--cwv-good); }
+.mc-pill.trend-worsening { color: var(--cwv-poor); }
 .mc-pill.trend-stable { color: var(--gray-400); }
 
-/* --- Breakdown Waterfall --- */
-.breakdown-waterfall {
-  margin-top: 8px;
-}
+/* --- Phase Breakdown --- */
+.breakdown-waterfall { margin-top: 8px; }
 
 .waterfall-bar-container {
   display: flex;
@@ -269,14 +261,11 @@ body {
   font-size: 11px;
   font-weight: 600;
   color: #fff;
-  transition: opacity 0.2s;
   position: relative;
   min-width: 30px;
 }
 
-.waterfall-segment:hover {
-  opacity: 0.85;
-}
+.waterfall-segment:hover { opacity: 0.85; }
 
 .waterfall-segment.bottleneck {
   outline: 3px solid var(--gray-900);
@@ -284,16 +273,10 @@ body {
   z-index: 1;
 }
 
-.seg-ttfb { background: #5b6abf; }
-.seg-loaddelay { background: #e07c39; }
-.seg-loadtime { background: #3b9ddb; }
-.seg-renderdelay { background: #8b5fb0; }
-.seg-inputdelay { background: #e07c39; }
-.seg-processing { background: #3b9ddb; }
-.seg-presentation { background: #8b5fb0; }
-.seg-before { background: #5b6abf; }
-.seg-shift { background: #e07c39; }
-.seg-after { background: #3b9ddb; }
+.seg-ttfb, .seg-inputdelay, .seg-before { background: var(--phase-1); }
+.seg-loaddelay, .seg-processing, .seg-shift { background: var(--phase-2); }
+.seg-loadtime, .seg-presentation, .seg-after { background: var(--phase-3); }
+.seg-renderdelay { background: var(--phase-4); }
 
 .waterfall-legend {
   display: flex;
@@ -303,11 +286,7 @@ body {
   color: var(--gray-600);
 }
 
-.waterfall-legend-item {
-  display: flex;
-  align-items: center;
-  gap: 6px;
-}
+.waterfall-legend-item { display: flex; align-items: center; gap: 6px; }
 
 .waterfall-legend-item .swatch {
   width: 12px;
@@ -316,9 +295,11 @@ body {
   display: inline-block;
 }
 
-.waterfall-legend-item.is-bottleneck {
-  font-weight: 700;
-  color: var(--gray-900);
+.waterfall-legend-item.is-bottleneck { font-weight: 700; color: var(--gray-900); }
+
+.waterfall-legend-item.is-bottleneck .swatch {
+  outline: 2px solid var(--gray-900);
+  outline-offset: 1px;
 }
 
 /* --- Filmstrip --- */
@@ -328,11 +309,7 @@ body {
   padding: 4px 0 12px;
 }
 
-.filmstrip-strip {
-  display: flex;
-  gap: 8px;
-  min-width: min-content;
-}
+.filmstrip-strip { display: flex; gap: 8px; min-width: min-content; }
 
 .filmstrip-frame {
   flex-shrink: 0;
@@ -343,16 +320,13 @@ body {
   transition: transform 0.15s;
 }
 
-.filmstrip-frame:hover {
-  transform: translateY(-2px);
-}
+.filmstrip-frame:hover { transform: translateY(-2px); }
 
 .filmstrip-frame img {
   width: 150px;
   height: auto;
   border: 1px solid var(--gray-200);
   border-radius: 4px;
-  box-shadow: var(--shadow);
   display: block;
 }
 
@@ -364,22 +338,14 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-.filmstrip-hint {
-  font-size: 12px;
-  color: var(--gray-400);
-  margin-top: 8px;
-  text-align: center;
-}
+.filmstrip-hint { font-size: 12px; color: var(--gray-400); margin-top: 8px; text-align: center; }
 
 /* --- Lightbox --- */
 .lightbox {
   display: none;
   position: fixed;
-  top: 0;
-  left: 0;
-  width: 100%;
-  height: 100%;
-  background: rgba(0, 0, 0, 0.85);
+  top: 0; left: 0; width: 100%; height: 100%;
+  background: rgba(0,0,0,0.85);
   z-index: 1000;
   align-items: center;
   justify-content: center;
@@ -387,16 +353,9 @@ body {
   cursor: pointer;
 }
 
-.lightbox.active {
-  display: flex;
-}
+.lightbox.active { display: flex; }
 
-.lightbox-inner {
-  position: relative;
-  max-width: 90vw;
-  max-height: 90vh;
-  cursor: default;
-}
+.lightbox-inner { position: relative; max-width: 90vw; max-height: 90vh; cursor: default; }
 
 .lightbox-inner img {
   max-width: 90vw;
@@ -408,24 +367,17 @@ body {
 
 .lightbox-close {
   position: absolute;
-  top: -36px;
-  right: 0;
-  width: 32px;
-  height: 32px;
+  top: -36px; right: 0;
+  width: 32px; height: 32px;
   background: rgba(255,255,255,0.15);
-  border: none;
-  border-radius: 50%;
-  color: #fff;
-  font-size: 20px;
-  line-height: 32px;
-  text-align: center;
+  border: none; border-radius: 50%;
+  color: #fff; font-size: 20px;
+  line-height: 32px; text-align: center;
   cursor: pointer;
   transition: background 0.2s;
 }
 
-.lightbox-close:hover {
-  background: rgba(255,255,255,0.3);
-}
+.lightbox-close:hover { background: rgba(255,255,255,0.3); }
 
 .lightbox-timestamp {
   text-align: center;
@@ -435,7 +387,7 @@ body {
   font-variant-numeric: tabular-nums;
 }
 
-/* --- Attribution --- */
+/* --- Attribution Table --- */
 .attribution-table {
   width: 100%;
   border-collapse: collapse;
@@ -446,29 +398,29 @@ body {
   text-align: left;
   font-weight: 600;
   color: var(--gray-500);
-  font-size: 11px;
-  text-transform: uppercase;
-  letter-spacing: 0.5px;
-  padding: 8px 12px;
-  border-bottom: 2px solid var(--gray-200);
+  font-size: 13px;
+  padding: 10px 12px 10px 0;
+  border-bottom: 1px solid var(--gray-100);
+  white-space: nowrap;
+  width: 140px;
 }
 
 .attribution-table td {
-  padding: 10px 12px;
+  padding: 10px 0;
   border-bottom: 1px solid var(--gray-100);
   color: var(--gray-700);
+  word-break: break-word;
 }
 
-.attribution-table tr:last-child td {
-  border-bottom: none;
-}
+.attribution-table tr:last-child th,
+.attribution-table tr:last-child td { border-bottom: none; }
 
 .attribution-table code {
   background: var(--gray-100);
   padding: 2px 6px;
   border-radius: 4px;
   font-size: 13px;
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   color: var(--gray-800);
 }
 
@@ -494,22 +446,12 @@ body {
   font-family: inherit;
 }
 
-.tab-btn:hover {
-  color: var(--gray-600);
-}
+.tab-btn:hover { color: var(--gray-600); }
 
-.tab-btn.active {
-  color: var(--gray-900);
-  border-bottom-color: var(--gray-900);
-}
+.tab-btn.active { color: var(--gray-900); border-bottom-color: var(--gray-900); }
 
-.tab-content {
-  display: none;
-}
-
-.tab-content.active {
-  display: block;
-}
+.tab-content { display: none; }
+.tab-content.active { display: block; }
 
 .tab-content p {
   margin-bottom: 12px;
@@ -522,15 +464,12 @@ body {
   max-width: 100%;
   border: 1px solid var(--gray-200);
   border-radius: var(--radius);
-  box-shadow: var(--shadow-md);
   margin: 16px 0;
   cursor: pointer;
   display: block;
 }
 
-.evidence-screenshot:hover {
-  box-shadow: 0 6px 12px rgba(0,0,0,0.12);
-}
+.evidence-screenshot:hover { box-shadow: var(--shadow); }
 
 .screenshot-caption {
   font-size: 12px;
@@ -541,15 +480,9 @@ body {
 }
 
 /* --- Collapsible Details --- */
-details {
-  background: #fff;
-  border: 1px solid var(--gray-200);
-  border-radius: var(--radius);
-  margin-bottom: 20px;
-  box-shadow: var(--shadow);
-}
+details.section { padding: 0; }
 
-details summary {
+details.section summary {
   padding: 16px 24px;
   font-size: 16px;
   font-weight: 700;
@@ -560,36 +493,53 @@ details summary {
   align-items: center;
   gap: 8px;
   user-select: none;
+  transition: background 0.15s ease;
 }
 
-details summary::-webkit-details-marker { display: none; }
+details.section summary:hover { background: var(--gray-50); }
+details.section summary::-webkit-details-marker { display: none; }
 
-details summary::before {
+details.section summary::before {
   content: "";
   display: inline-block;
-  width: 8px;
-  height: 8px;
+  width: 7px; height: 7px;
   border-right: 2px solid var(--gray-400);
   border-bottom: 2px solid var(--gray-400);
   transform: rotate(-45deg);
-  transition: transform 0.2s;
+  transition: transform 0.2s ease;
   flex-shrink: 0;
 }
 
-details[open] summary::before {
-  transform: rotate(45deg);
+details[open].section summary::before { transform: rotate(45deg); }
+details[open].section summary { border-bottom: 1px solid var(--gray-200); }
+details.section .details-body { padding: 24px; }
+
+/* --- Prose in sections/details --- */
+.details-body p, .section p {
+  font-size: 15px;
+  color: var(--gray-700);
+  line-height: 1.7;
+  margin-bottom: 10px;
 }
 
-details .details-body {
-  padding: 0 24px 24px;
+.details-body p:last-child { margin-bottom: 0; }
+.details-body strong, .section strong { font-weight: 600; color: var(--gray-900); }
+
+.details-body ul, .details-body ol { margin: 10px 0; padding-left: 22px; }
+
+.details-body li {
+  font-size: 15px;
+  color: var(--gray-700);
+  line-height: 1.7;
+  margin-bottom: 4px;
 }
 
 /* --- Code Blocks --- */
 pre {
-  background: var(--gray-900);
-  color: #e5e7eb;
-  padding: 16px 20px;
+  background: var(--gray-100);
+  border: 1px solid var(--gray-200);
   border-radius: 6px;
+  padding: 16px 20px;
   overflow-x: auto;
   font-size: 13px;
   line-height: 1.6;
@@ -597,15 +547,15 @@ pre {
 }
 
 pre code {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   background: none;
   padding: 0;
-  color: inherit;
+  color: var(--gray-800);
   font-size: inherit;
 }
 
 code {
-  font-family: "SFMono-Regular", Consolas, "Liberation Mono", Menlo, monospace;
+  font-family: var(--font-mono);
   background: var(--gray-100);
   padding: 2px 6px;
   border-radius: 4px;
@@ -632,10 +582,8 @@ code {
 .verify-steps li::before {
   content: counter(verify-step);
   position: absolute;
-  left: 0;
-  top: 8px;
-  width: 24px;
-  height: 24px;
+  left: 0; top: 8px;
+  width: 24px; height: 24px;
   background: var(--gray-100);
   border-radius: 50%;
   font-size: 12px;
@@ -645,9 +593,7 @@ code {
   line-height: 24px;
 }
 
-.verify-steps li + li {
-  border-top: 1px solid var(--gray-100);
-}
+.verify-steps li + li { border-top: 1px solid var(--gray-100); }
 
 /* --- Footer --- */
 .report-footer {
@@ -655,125 +601,54 @@ code {
   padding: 32px 20px 0;
   font-size: 12px;
   color: var(--gray-400);
+  line-height: 1.7;
 }
 
-.report-footer .footer-line {
-  margin-bottom: 4px;
-}
+.report-footer .footer-line { margin-bottom: 4px; }
+.report-footer .footer-brand { font-weight: 600; color: var(--gray-500); }
 
 /* --- Responsive --- */
 @media (max-width: 640px) {
-  .report-container {
-    padding: 12px 10px 32px;
-  }
-
-  .report-header {
-    padding: 28px 16px 24px;
-  }
-
-  .report-header h1 {
-    font-size: 22px;
-  }
-
-  .metric-cards {
-    flex-direction: column;
-    padding: 12px;
-  }
-
-  .metric-card {
-    min-width: 0;
-    flex: 1 1 100%;
-  }
-
-  .section {
-    padding: 16px;
-  }
-
-  details .details-body {
-    padding: 0 16px 16px;
-  }
-
-  details summary {
-    padding: 12px 16px;
-    font-size: 15px;
-  }
-
-  .evidence-tabs {
-    overflow-x: auto;
-  }
-
-  .tab-btn {
-    padding: 8px 14px;
-    font-size: 13px;
-    white-space: nowrap;
-  }
-
-  .filmstrip-frame img {
-    width: 120px;
-  }
-
-  .waterfall-legend {
-    gap: 10px;
-    font-size: 11px;
-  }
+  .report-container { padding: 12px 10px 32px; }
+  .report-header { padding: 28px 16px 24px; }
+  .report-header h1 { font-size: 22px; }
+  .metric-cards { flex-direction: column; padding: 12px; }
+  .metric-card { min-width: 0; flex: 1 1 100%; }
+  .section { padding: 16px; }
+  details.section .details-body { padding: 16px; }
+  details.section summary { padding: 12px 16px; font-size: 15px; }
+  .evidence-tabs { overflow-x: auto; }
+  .tab-btn { padding: 8px 14px; font-size: 13px; white-space: nowrap; }
+  .filmstrip-frame img { width: 120px; }
+  .waterfall-legend { gap: 10px; font-size: 11px; }
+  pre { padding: 12px 14px; font-size: 12px; }
 }
 
 /* --- Print --- */
 @media print {
-  body {
-    background: #fff;
-  }
-
-  .report-container {
-    max-width: 100%;
-    padding: 0;
-  }
-
+  body { background: #fff; }
+  .report-container { max-width: 100%; padding: 0; }
   .report-header {
     background: var(--gray-900) !important;
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
+    break-after: avoid;
   }
-
-  .section, details, .metric-card, .metric-cards {
-    box-shadow: none;
-    break-inside: avoid;
-  }
-
-  details[open] {
-    break-inside: auto;
-  }
-
-  .filmstrip-container {
-    overflow-x: visible;
-  }
-
-  .filmstrip-strip {
-    flex-wrap: wrap;
-  }
-
-  .lightbox {
-    display: none !important;
-  }
-
-  .filmstrip-hint {
-    display: none;
-  }
-
-  .distribution-bar,
-  .waterfall-bar-container {
+  .section, .metric-card, .metric-cards { box-shadow: none; break-inside: avoid; }
+  details.section { break-inside: auto; }
+  .filmstrip-container { overflow-x: visible; }
+  .filmstrip-strip { flex-wrap: wrap; }
+  .lightbox { display: none !important; }
+  .filmstrip-hint { display: none; }
+  .waterfall-bar-container, .dist-track, .dist-fill {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
-
-  .mc-badge,
-  .seg-good,
-  .seg-ni,
-  .seg-poor,
-  .p75-dot {
+  .mc-badge, .seg-good, .seg-ni, .seg-poor, .p75-dot, .waterfall-segment {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+  pre { white-space: pre-wrap; word-wrap: break-word; }
 }
 </style>
 </head>
@@ -781,9 +656,6 @@ code {
 
 <div class="report-container">
 
-  <!-- ============================================================
-       SECTION: HEADER
-       ============================================================ -->
   <!-- SECTION:HEADER -->
   <header class="report-header">
     <h1>Core Web Vitals Report</h1>
@@ -794,27 +666,17 @@ code {
   </header>
   <!-- /SECTION:HEADER -->
 
-  <!-- ============================================================
-       SECTION: EXECUTIVE SUMMARY
-       ============================================================ -->
   <!-- SECTION:EXECUTIVE_SUMMARY -->
   <div class="section">
     <h2 class="section-title">Executive Summary</h2>
     <div class="executive-summary">
       <!-- Agent: Replace with 2-4 sentence executive summary covering the key finding,
-           the metric value, the element, and the recommended action. Example:
-           "<p><strong>LCP is 3,820ms (poor)</strong> on <code>/product/running-shoes-42</code>, mobile.
-           The bottleneck is LOADDELAY at 1,980ms (52% of total LCP) — the hero image is discovered late
-           because it lacks a preload hint. Adding a <code>&lt;link rel="preload"&gt;</code> is projected
-           to save ~1,500ms.</p>" -->
+           the metric value, the element, and the recommended action. -->
       <p>Executive summary placeholder. The agent will replace this with a concise overview of the findings, root cause, and recommended fix.</p>
     </div>
   </div>
   <!-- /SECTION:EXECUTIVE_SUMMARY -->
 
-  <!-- ============================================================
-       SECTION: METRIC CARDS
-       ============================================================ -->
   <!-- SECTION:METRIC_CARDS -->
   <div class="metric-cards">
     <!-- Agent: Replace these cards with actual metric data.
@@ -894,13 +756,9 @@ code {
         <span class="mc-pill trend-improving">trend: &#8600; 3.2%</span>
       </div>
     </div>
-
   </div>
   <!-- /SECTION:METRIC_CARDS -->
 
-  <!-- ============================================================
-       SECTION: BREAKDOWN WATERFALL
-       ============================================================ -->
   <!-- SECTION:BREAKDOWN -->
   <div class="section">
     <h2 class="section-title">Phase Breakdown</h2>
@@ -919,8 +777,6 @@ code {
         <div class="waterfall-segment seg-renderdelay" style="width: 10%" title="RENDERDELAY: 380ms (10%)">RENDERDELAY</div>
       </div>
       <div class="waterfall-legend">
-        <!-- Agent: Update legend to match actual phases and values.
-             Add is-bottleneck class to the dominant phase. -->
         <div class="waterfall-legend-item">
           <span class="swatch seg-ttfb"></span> TTFB: 620ms (16%)
         </div>
@@ -938,9 +794,6 @@ code {
   </div>
   <!-- /SECTION:BREAKDOWN -->
 
-  <!-- ============================================================
-       SECTION: FILMSTRIP
-       ============================================================ -->
   <!-- SECTION:FILMSTRIP -->
   <div class="section">
     <h2 class="section-title">Page Load Filmstrip</h2>
@@ -954,9 +807,9 @@ code {
              </div>
 
              Capture sequence (use browser_evaluate to detect timing):
-             1. Immediately after browser_navigate (blank/white page) — label "0.0s"
-             2. After FCP (run: await new Promise(r => new PerformanceObserver(l => { r(); }).observe({type:'paint',buffered:true})))
-             3. After LCP element appears (check DOM for LCP element presence)
+             1. Immediately after browser_navigate (blank/white page)
+             2. After FCP
+             3. After LCP element appears
              4. After load event + 1s (final state)
 
              If you cannot capture timed screenshots, capture at least ONE screenshot of the
@@ -967,49 +820,36 @@ code {
   </div>
   <!-- /SECTION:FILMSTRIP -->
 
-  <!-- ============================================================
-       SECTION: ATTRIBUTION
-       ============================================================ -->
   <!-- SECTION:ATTRIBUTION -->
   <div class="section">
     <h2 class="section-title">Attribution</h2>
     <table class="attribution-table">
-      <!-- Agent: Replace table rows with actual attribution data from CoreDash.
+      <!-- Agent: Replace table rows with actual attribution data.
+           Use th as row label (first cell), td as value (second cell).
            Adjust fields based on metric:
-             LCP: Element, Type, URL, Resource URL
+             LCP: Element, Type, Resource URL, Priority
              INP: Element, Event type, Load state, Script URL
              CLS: Element, Shift source, Previous/Current rects -->
-      <thead>
-        <tr>
-          <th>Property</th>
-          <th>Value</th>
-        </tr>
-      </thead>
-      <tbody>
-        <tr>
-          <td>Element</td>
-          <td><code>div.hero-banner &gt; img.product-main</code></td>
-        </tr>
-        <tr>
-          <td>Type</td>
-          <td>Image</td>
-        </tr>
-        <tr>
-          <td>Resource URL</td>
-          <td><code>https://cdn.example.com/images/hero.jpg</code></td>
-        </tr>
-        <tr>
-          <td>Device</td>
-          <td>Mobile</td>
-        </tr>
-      </tbody>
+      <tr>
+        <th>Element</th>
+        <td><code>div.hero-banner &gt; img.product-main</code></td>
+      </tr>
+      <tr>
+        <th>Type</th>
+        <td>Image</td>
+      </tr>
+      <tr>
+        <th>Resource URL</th>
+        <td><code>https://cdn.example.com/images/hero.jpg</code></td>
+      </tr>
+      <tr>
+        <th>Device</th>
+        <td>Mobile</td>
+      </tr>
     </table>
   </div>
   <!-- /SECTION:ATTRIBUTION -->
 
-  <!-- ============================================================
-       SECTION: ROOT CAUSE WITH EVIDENCE TABS
-       ============================================================ -->
   <!-- SECTION:ROOT_CAUSE -->
   <div class="section">
     <h2 class="section-title">Root Cause Analysis</h2>
@@ -1019,13 +859,13 @@ code {
     </div>
     <div class="tab-content active" id="tab-rum">
       <!-- Agent: Replace with RUM evidence text -->
-      <p><strong>Root cause:</strong> Root cause statement placeholder. The agent will replace this with a precise one-sentence root cause naming the element, the cause, and the impact.</p>
-      <p><strong>Evidence from real users (CoreDash):</strong> RUM evidence placeholder. The agent will replace this with 2-3 sentences including the metric value, element selector, bottleneck phase with percentage, device segment, and trend direction.</p>
+      <p><strong>Root cause:</strong> Root cause placeholder.</p>
+      <p><strong>Evidence from real users (CoreDash):</strong> RUM evidence placeholder.</p>
     </div>
     <div class="tab-content" id="tab-chrome">
-      <!-- Agent: Replace with Chrome evidence text + screenshots -->
-      <p><strong>Evidence from lab trace (Chrome):</strong> Chrome trace evidence placeholder. The agent will replace this with 2-3 sentences describing what the waterfall, flamechart, or filmstrip revealed about the specific bottleneck.</p>
-      <p><strong>Combined:</strong> Combined evidence placeholder. The agent will tie the Chrome finding to the RUM bottleneck in 1-2 sentences explaining the mechanical cause.</p>
+      <!-- Agent: Replace with Chrome evidence text -->
+      <p><strong>Evidence from lab trace (Chrome):</strong> Chrome trace evidence placeholder.</p>
+      <p><strong>Combined:</strong> Combined evidence placeholder.</p>
       <!-- SECTION:WATERFALL_SVG -->
       <!-- Agent: Replace the waterfallData array below with real data from browser_network_requests
            + browser_evaluate running performance.getEntriesByType('resource').
@@ -1060,11 +900,10 @@ code {
         }
         function fmtSize(b) { return b >= 1000 ? (b / 1024).toFixed(0) + 'kB' : b + 'B'; }
 
-        var colors = { dns: '#8b5cf6', connect: '#3b82f6', tls: '#06b6d4', ttfb: '#5b6abf', download: '#3b9ddb' };
+        var colors = { dns: '#8b8fa8', connect: '#6b7280', tls: '#9ca3af', ttfb: '#4a5fa8', download: '#6474c4' };
 
         var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;background:#fff;border:1px solid #e5e7eb;border-radius:8px">';
 
-        // Axis ticks
         var tickCount = 6;
         for (var t = 0; t <= tickCount; t++) {
           var ms = (maxTime / tickCount) * t;
@@ -1073,12 +912,10 @@ code {
           svg += '<text x="' + tx + '" y="' + (PAD_TOP - 8) + '" fill="#9ca3af" text-anchor="middle" font-size="10">' + (ms >= 1000 ? (ms/1000).toFixed(1) + 's' : Math.round(ms) + 'ms') + '</text>';
         }
 
-        // LCP marker
         var lcpX = x(lcpTime);
-        svg += '<line x1="' + lcpX + '" y1="' + PAD_TOP + '" x2="' + lcpX + '" y2="' + (H - PAD_BOTTOM) + '" stroke="#ff4e42" stroke-width="2" stroke-dasharray="6,3"/>';
-        svg += '<text x="' + lcpX + '" y="' + (H - PAD_BOTTOM + 16) + '" fill="#ff4e42" text-anchor="middle" font-weight="bold" font-size="11">LCP ' + (lcpTime >= 1000 ? (lcpTime/1000).toFixed(1) + 's' : lcpTime + 'ms') + '</text>';
+        svg += '<line x1="' + lcpX + '" y1="' + PAD_TOP + '" x2="' + lcpX + '" y2="' + (H - PAD_BOTTOM) + '" stroke="#e53e3e" stroke-width="2" stroke-dasharray="6,3"/>';
+        svg += '<text x="' + lcpX + '" y="' + (H - PAD_BOTTOM + 16) + '" fill="#e53e3e" text-anchor="middle" font-weight="bold" font-size="11">LCP ' + (lcpTime >= 1000 ? (lcpTime/1000).toFixed(1) + 's' : lcpTime + 'ms') + '</text>';
 
-        // Rows
         for (var i = 0; i < waterfallData.length; i++) {
           var r = waterfallData[i];
           var rowY = PAD_TOP + i * ROW_H + 4;
@@ -1086,19 +923,14 @@ code {
           var barH = ROW_H - 10;
           var highlight = r.isLcp;
 
-          // Row background for LCP
           if (highlight) {
-            svg += '<rect x="0" y="' + rowY + '" width="' + W + '" height="' + ROW_H + '" fill="#fff5f5" rx="2"/>';
+            svg += '<rect x="0" y="' + rowY + '" width="' + W + '" height="' + ROW_H + '" fill="#fef2f2" rx="2"/>';
           }
 
-          // Label
           var label = shortName(r.name);
           svg += '<text x="' + (PAD_LEFT - 8) + '" y="' + (rowY + ROW_H / 2 + 1) + '" fill="' + (highlight ? '#dc2626' : '#374151') + '" text-anchor="end" font-weight="' + (highlight ? '700' : '400') + '" font-size="11">' + label + '</text>';
-
-          // Size
           svg += '<text x="' + (PAD_LEFT - 8) + '" y="' + (rowY + ROW_H / 2 + 12) + '" fill="#9ca3af" text-anchor="end" font-size="9">' + fmtSize(r.size) + '</text>';
 
-          // Segments
           var cx = x(r.start);
           var phases = [['dns', r.dns], ['connect', r.connect], ['tls', r.tls], ['ttfb', r.ttfb], ['download', r.download]];
           for (var p = 0; p < phases.length; p++) {
@@ -1110,17 +942,12 @@ code {
             cx += segW;
           }
 
-          // LCP marker dot
           if (highlight) {
-            svg += '<circle cx="' + (PAD_LEFT - 2) + '" cy="' + (rowY + ROW_H / 2 + 1) + '" r="3" fill="#ff4e42"/>';
+            svg += '<circle cx="' + (PAD_LEFT - 2) + '" cy="' + (rowY + ROW_H / 2 + 1) + '" r="3" fill="#e53e3e"/>';
           }
         }
 
-        // Legend
-        var legendY = H - 6;
-        var legendItems = [['DNS','#8b5cf6'],['Connect','#3b82f6'],['TLS','#06b6d4'],['TTFB','#5b6abf'],['Download','#3b9ddb']];
-        /* legend rendered below chart via HTML instead */
-
+        var legendItems = [['DNS','#8b8fa8'],['Connect','#6b7280'],['TLS','#9ca3af'],['TTFB','#4a5fa8'],['Download','#6474c4']];
         svg += '</svg>';
 
         var container = document.getElementById('waterfall-chart');
@@ -1128,7 +955,7 @@ code {
           container.innerHTML = svg;
           container.innerHTML += '<div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:#6b7280;flex-wrap:wrap">' +
             legendItems.map(function(l) { return '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + l[1] + ';display:inline-block"></span>' + l[0] + '</span>'; }).join('') +
-            '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:2px;background:#ff4e42;display:inline-block;border-top:1px dashed #ff4e42"></span>LCP</span>' +
+            '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:2px;background:#e53e3e;display:inline-block;border-top:1px dashed #e53e3e"></span>LCP</span>' +
             '</div>';
         }
       })();
@@ -1143,17 +970,12 @@ code {
   </div>
   <!-- /SECTION:ROOT_CAUSE -->
 
-  <!-- ============================================================
-       SECTION: RECOMMENDED FIX
-       ============================================================ -->
   <!-- SECTION:RECOMMENDED_FIX -->
-  <details open>
+  <details class="section" open>
     <summary>Recommended Fix</summary>
     <div class="details-body">
-      <!-- Agent: Replace with specific fix description and code example.
-           Use <pre><code> for code blocks. Be precise: name the file, the line,
-           the exact change. -->
-      <p>Fix description placeholder. The agent will replace this with a specific, actionable fix that addresses the identified root cause.</p>
+      <!-- Agent: Replace with specific fix description and code example. -->
+      <p>Fix description placeholder.</p>
       <pre><code>&lt;!-- Example: Add preload for the LCP image --&gt;
 &lt;link rel="preload" href="/images/hero.jpg" as="image" fetchpriority="high" /&gt;
 
@@ -1163,15 +985,11 @@ code {
   </details>
   <!-- /SECTION:RECOMMENDED_FIX -->
 
-  <!-- ============================================================
-       SECTION: HOW TO VERIFY
-       ============================================================ -->
   <!-- SECTION:HOW_TO_VERIFY -->
-  <details>
+  <details class="section">
     <summary>How to Verify</summary>
     <div class="details-body">
-      <!-- Agent: Replace with verification steps specific to the fix.
-           Use the ol.verify-steps structure. -->
+      <!-- Agent: Replace with verification steps. -->
       <ol class="verify-steps">
         <li>Deploy the change to a staging environment or use a local preview.</li>
         <li>Run a Lighthouse audit on the affected page and confirm the metric has improved.</li>
@@ -1182,21 +1000,15 @@ code {
   </details>
   <!-- /SECTION:HOW_TO_VERIFY -->
 
-  <!-- ============================================================
-       SECTION: FOOTER
-       ============================================================ -->
   <!-- SECTION:FOOTER -->
   <footer class="report-footer">
-    <div class="footer-line">Generated by CWV Superpower</div>
+    <div class="footer-line footer-brand">Generated by CWV Superpower</div>
     <div class="footer-line">Data sources: CoreDash Real User Monitoring + Chrome DevTools Trace</div>
   </footer>
   <!-- /SECTION:FOOTER -->
 
 </div>
 
-<!-- ============================================================
-     Inline JavaScript — Lightbox + Tab Switching
-     ============================================================ -->
 <script>
 (function() {
   'use strict';
@@ -1215,14 +1027,10 @@ code {
       '</div>';
     document.body.appendChild(lightbox);
 
-    // Close on backdrop click
     lightbox.addEventListener('click', function(e) {
-      if (e.target === lightbox) {
-        closeLightbox();
-      }
+      if (e.target === lightbox) closeLightbox();
     });
 
-    // Close on X button click
     lightbox.querySelector('.lightbox-close').addEventListener('click', function(e) {
       e.stopPropagation();
       closeLightbox();
@@ -1230,29 +1038,23 @@ code {
   }
 
   function closeLightbox() {
-    if (lightbox) {
-      lightbox.classList.remove('active');
-    }
+    if (lightbox) lightbox.classList.remove('active');
   }
 
-  // Expose openLightbox globally for onclick attributes
   window.openLightbox = function(el) {
     if (!lightbox) createLightbox();
 
     var img;
     var timestamp = '';
 
-    // Handle both filmstrip frames (div with img child) and standalone screenshots
     if (el.tagName === 'IMG') {
       img = el;
-      // Check if this is inside a filmstrip frame
       var parent = el.closest('.filmstrip-frame');
       if (parent) {
         var timeEl = parent.querySelector('.frame-time');
         if (timeEl) timestamp = timeEl.textContent;
       }
     } else {
-      // It's a filmstrip frame div
       img = el.querySelector('img');
       var timeEl = el.querySelector('.frame-time');
       if (timeEl) timestamp = timeEl.textContent;
@@ -1271,11 +1073,8 @@ code {
     lightbox.classList.add('active');
   };
 
-  // Close on Escape key
   document.addEventListener('keydown', function(e) {
-    if (e.key === 'Escape') {
-      closeLightbox();
-    }
+    if (e.key === 'Escape') closeLightbox();
   });
 
   // ---- Tab Switching ----
@@ -1288,23 +1087,32 @@ code {
 
     var tabId = btn.getAttribute('data-tab');
 
-    // Deactivate all tabs in this group
     var allBtns = tabGroup.querySelectorAll('.tab-btn');
-    for (var i = 0; i < allBtns.length; i++) {
-      allBtns[i].classList.remove('active');
-    }
+    for (var i = 0; i < allBtns.length; i++) allBtns[i].classList.remove('active');
 
     var allContents = tabGroup.querySelectorAll('.tab-content');
-    for (var i = 0; i < allContents.length; i++) {
-      allContents[i].classList.remove('active');
-    }
+    for (var i = 0; i < allContents.length; i++) allContents[i].classList.remove('active');
 
-    // Activate selected tab
     btn.classList.add('active');
     var targetContent = document.getElementById('tab-' + tabId);
-    if (targetContent) {
-      targetContent.classList.add('active');
-    }
+    if (targetContent) targetContent.classList.add('active');
+  });
+
+  // ---- Print: force details open ----
+  window.addEventListener('beforeprint', function() {
+    document.querySelectorAll('details.section').forEach(function(el) {
+      if (!el.hasAttribute('open')) {
+        el.setAttribute('open', '');
+        el.dataset.closedBeforePrint = 'true';
+      }
+    });
+  });
+
+  window.addEventListener('afterprint', function() {
+    document.querySelectorAll('details.section[data-closed-before-print]').forEach(function(el) {
+      el.removeAttribute('open');
+      delete el.dataset.closedBeforePrint;
+    });
   });
 })();
 </script>
