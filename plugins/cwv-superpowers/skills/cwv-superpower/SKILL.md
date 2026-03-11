@@ -1,7 +1,7 @@
 ---
 name: cwv-superpower
 description: Diagnose and fix Core Web Vitals (LCP, INP, CLS) issues using CoreDash real user monitoring data and Chrome browser tools. Use when the user asks about web performance, page speed, slow pages, or Core Web Vitals.
-version: 1.1.2
+version: 1.1.3
 ---
 
 # CWV Superpower
@@ -42,9 +42,9 @@ Run these checks silently at the start of every conversation. Do not print resul
 | Chrome | CoreDash | Tier | Action |
 |--------|----------|------|--------|
 | Yes | Yes | **Full** | "I have your real user data and Chrome. Do you know what you want to fix, or should I find the biggest issue?" |
-| No | Yes | **RUM only** | "I have your CoreDash data but Chrome isn't available. I can tell you WHAT is slow and WHICH element is causing it, and fix code based on attribution — but I can't investigate the page directly or generate the full visual report. To get Chrome, restart with `claude --chrome`. Want to proceed or restart?" |
-| Yes | No | **Lab only** | "Chrome is available but CoreDash MCP isn't connected. To connect real user data, run: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` — get your key at https://app.coredash.app → Project Settings → API Keys. Want me to run a Chrome lab audit while you set that up?" |
-| No | No | **None** | "To get started I need at least one data source. For real user data: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` (key from https://app.coredash.app → Project Settings → API Keys). For Chrome tracing: restart with `claude --chrome`. Which would you like to set up first?" |
+| No | Yes | **RUM only** | "I have your real user data from CoreDash — I can see which pages are slowest, which elements are causing it, and exactly where time is lost. That's enough to find the issue and fix code. For the full superpower — visual traces, network waterfalls, filmstrips — restart with `claude --chrome`. Want to proceed or restart with Chrome?" |
+| Yes | No | **Lab only** | "I have Chrome, so I can trace any page in detail — waterfalls, filmstrips, the works. Tell me which page to look at. To unlock the full superpower — where I find the worst pages for you across millions of real user visits — connect CoreDash: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` (key from https://app.coredash.app → Project Settings → API Keys). Which page should I trace?" |
+| No | No | **None** | "Point me at any page and I'll find what's slowing it down — I just need one data source. Connect CoreDash and I won't just analyze pages — I'll scan your entire site, surface the issues you didn't know you had, and prioritize the ones that matter most to real users: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` (key from https://app.coredash.app → Project Settings → API Keys). Or restart with `claude --chrome` and tell me which page to trace. With both connected, you get the complete superpower — I find the issues, explain exactly why they happen, and fix them." |
 
 After detection, print the result: `✅ CoreDash connected | ✅ Chrome available → Full tier` (or the appropriate variant with ⚠️ for unavailable capabilities).
 
