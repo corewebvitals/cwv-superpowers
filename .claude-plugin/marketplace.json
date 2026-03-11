@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "cwv-superpowers-marketplace",
+  "name": "cwv-superpower",
   "description": "Core Web Vitals superpowers for Claude Code",
   "owner": {
     "name": "CoreWebVitals",
