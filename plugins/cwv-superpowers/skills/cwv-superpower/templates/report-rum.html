@@ -147,7 +147,7 @@
     line-height: 1.7;
   }
 
-  /* ===== Metric Cards Grid ===== */
+  /* ===== Metric Cards (CoreDash style) ===== */
   .metric-cards-grid {
     display: flex;
     flex-wrap: wrap;
@@ -155,136 +155,129 @@
   }
 
   .metric-card {
-    flex: 1 1 200px;
-    min-width: 200px;
+    flex: 1 1 240px;
+    min-width: 220px;
     max-width: 100%;
     background: #fff;
     border: 1px solid #e2e8f0;
     border-radius: 10px;
-    padding: 20px;
-    position: relative;
-    transition: box-shadow 0.15s ease, border-color 0.15s ease;
+    padding: 20px 22px 16px;
+    transition: box-shadow 0.15s ease;
   }
 
   .metric-card:hover {
-    box-shadow: 0 4px 12px rgba(0,0,0,0.07);
+    box-shadow: 0 4px 12px rgba(0,0,0,0.06);
   }
 
-  .metric-card[data-rating="good"] {
-    border-top: 3px solid #0cce6b;
+  .mc-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: baseline;
+    margin-bottom: 2px;
   }
 
-  .metric-card[data-rating="needs-improvement"] {
-    border-top: 3px solid #ffa400;
-  }
-
-  .metric-card[data-rating="poor"] {
-    border-top: 3px solid #ff4e42;
-  }
-
-  .metric-card h3 {
-    font-size: 0.85rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.06em;
-    color: #718096;
-    margin-bottom: 6px;
-  }
-
-  .metric-value {
-    font-size: 2rem;
+  .mc-title {
+    font-size: 16px;
     font-weight: 700;
     color: #1a1a2e;
-    line-height: 1.2;
-    margin-bottom: 8px;
   }
 
-  .metric-unit {
-    font-size: 0.85rem;
+  .mc-value {
+    font-size: 22px;
+    font-weight: 700;
+    color: #1a1a2e;
+    font-variant-numeric: tabular-nums;
+  }
+
+  .mc-value .unit {
+    font-size: 13px;
     font-weight: 500;
     color: #a0aec0;
-    margin-left: 2px;
+    margin-left: 1px;
   }
 
-  /* ===== Rating Badges ===== */
-  .rating-badge {
-    display: inline-block;
-    padding: 3px 10px;
-    border-radius: 20px;
-    font-size: 0.72rem;
-    font-weight: 600;
-    text-transform: uppercase;
-    letter-spacing: 0.04em;
-    color: #fff;
+  .mc-subtitle {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
     margin-bottom: 14px;
   }
 
-  .rating-badge.good {
-    background: #0cce6b;
-  }
-
-  .rating-badge.needs-improvement {
-    background: #ffa400;
-  }
-
-  .rating-badge.poor {
-    background: #ff4e42;
-  }
-
-  /* ===== Distribution Bar ===== */
-  .distribution-bar {
-    display: flex;
-    height: 8px;
-    border-radius: 4px;
-    overflow: hidden;
-    background: #edf0f4;
-    margin-bottom: 6px;
-  }
-
-  .dist-good {
-    background: #0cce6b;
-    height: 100%;
-    transition: width 0.4s ease;
-  }
-
-  .dist-improve {
-    background: #ffa400;
-    height: 100%;
-    transition: width 0.4s ease;
-  }
-
-  .dist-poor {
-    background: #ff4e42;
-    height: 100%;
-    transition: width 0.4s ease;
-  }
-
-  .distribution-labels {
-    display: flex;
-    justify-content: space-between;
-    font-size: 0.68rem;
-    color: #a0aec0;
-    margin-bottom: 10px;
-  }
-
-  /* ===== Trend ===== */
-  .trend {
-    font-size: 0.78rem;
-    font-weight: 500;
+  .mc-metric-name {
+    font-size: 13px;
     color: #718096;
   }
 
-  .trend.improving {
-    color: #0cce6b;
+  .mc-badge {
+    display: inline-block;
+    padding: 2px 10px;
+    border-radius: 4px;
+    font-size: 12px;
+    font-weight: 600;
+    color: #fff;
   }
 
-  .trend.worsening {
-    color: #ff4e42;
+  .mc-badge.good { background: #0cad5a; }
+  .mc-badge.needs-improvement { background: #e69500; }
+  .mc-badge.poor { background: #e53e3e; }
+
+  /* Distribution track with p75 marker */
+  .dist-track {
+    position: relative;
+    height: 10px;
+    background: #edf2f7;
+    border-radius: 5px;
+    margin-bottom: 12px;
   }
 
-  .trend.stable {
-    color: #a0aec0;
+  .dist-fill {
+    display: flex;
+    height: 100%;
+    border-radius: 5px;
+    overflow: hidden;
+    width: 100%;
   }
+
+  .dist-fill .seg-good { background: #0cad5a; }
+  .dist-fill .seg-ni { background: #e69500; }
+  .dist-fill .seg-poor { background: #e53e3e; }
+
+  .p75-dot {
+    position: absolute;
+    top: 50%;
+    transform: translate(-50%, -50%);
+    width: 14px;
+    height: 14px;
+    border-radius: 50%;
+    background: #fff;
+    border: 3px solid #1a1a2e;
+    z-index: 2;
+    box-shadow: 0 1px 3px rgba(0,0,0,0.15);
+  }
+
+  .mc-footer {
+    display: flex;
+    gap: 10px;
+    align-items: center;
+    flex-wrap: wrap;
+  }
+
+  .mc-pill {
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    font-size: 12px;
+    color: #718096;
+    background: #f7fafc;
+    border: 1px solid #e2e8f0;
+    border-radius: 4px;
+    padding: 2px 8px;
+    font-weight: 500;
+  }
+
+  .mc-pill.trend-improving { color: #0cad5a; }
+  .mc-pill.trend-worsening { color: #e53e3e; }
+  .mc-pill.trend-stable { color: #a0aec0; }
 
   /* ===== Breakdown Waterfall ===== */
   .breakdown-container {
@@ -540,10 +533,7 @@
 
     .metric-card {
       flex: 1 1 100%;
-    }
-
-    .metric-value {
-      font-size: 1.6rem;
+      min-width: 0;
     }
 
     .breakdown-segment .phase-name {
@@ -611,24 +601,12 @@
       break-inside: avoid;
     }
 
-    .metric-card[data-rating="good"] {
-      border-top-color: #0cce6b;
-    }
-
-    .metric-card[data-rating="needs-improvement"] {
-      border-top-color: #ffa400;
-    }
-
-    .metric-card[data-rating="poor"] {
-      border-top-color: #ff4e42;
-    }
-
-    .distribution-bar,
-    .dist-good,
-    .dist-improve,
-    .dist-poor,
-    .breakdown-segment,
-    .rating-badge {
+    .seg-good,
+    .seg-ni,
+    .seg-poor,
+    .p75-dot,
+    .mc-badge,
+    .breakdown-segment {
       -webkit-print-color-adjust: exact;
       print-color-adjust: exact;
     }
@@ -676,52 +654,82 @@
     <div class="section-body">
       <div class="section-label">Core Web Vitals</div>
       <!-- SECTION:METRIC_CARDS -->
-      <!-- Agent: Replace with metric card HTML. One card per metric. -->
+      <!-- Agent: Replace with metric card HTML. One card per metric.
+           Structure per card:
+           - mc-header: metric short name (left) + p75 value with unit (right)
+           - mc-subtitle: full metric name (left) + rating badge (right)
+           - dist-track: distribution bar with good/NI/poor segments + p75 dot marker
+             Set p75 dot left% = good%. Segments: seg-good width=good%, seg-ni width=NI%, seg-poor width=poor%
+           - mc-footer: samples pill + trend pill (add trend-improving/trend-worsening/trend-stable class) -->
       <div class="metric-cards-grid">
 
-        <div class="metric-card" data-rating="poor">
-          <h3>LCP</h3>
-          <div class="metric-value">3,820<span class="metric-unit">ms</span></div>
-          <span class="rating-badge poor">Poor</span>
-          <div class="distribution-bar">
-            <div class="dist-good" style="width: 32%"></div>
-            <div class="dist-improve" style="width: 28%"></div>
-            <div class="dist-poor" style="width: 40%"></div>
+        <div class="metric-card">
+          <div class="mc-header">
+            <div class="mc-title">LCP</div>
+            <div class="mc-value">3.82<span class="unit">s</span></div>
           </div>
-          <div class="distribution-labels">
-            <span>32% good</span><span>28% NI</span><span>40% poor</span>
+          <div class="mc-subtitle">
+            <span class="mc-metric-name">Largest Contentful Paint</span>
+            <span class="mc-badge poor">poor</span>
           </div>
-          <div class="trend worsening">&uarr; +12% over 7 days</div>
+          <div class="dist-track">
+            <div class="dist-fill">
+              <div class="seg-good" style="width: 32%"></div>
+              <div class="seg-ni" style="width: 28%"></div>
+              <div class="seg-poor" style="width: 40%"></div>
+            </div>
+            <div class="p75-dot" style="left: 32%"></div>
+          </div>
+          <div class="mc-footer">
+            <span class="mc-pill">samples: 1,240</span>
+            <span class="mc-pill trend-worsening">trend: &#8599; 12%</span>
+          </div>
         </div>
 
-        <div class="metric-card" data-rating="good">
-          <h3>INP</h3>
-          <div class="metric-value">142<span class="metric-unit">ms</span></div>
-          <span class="rating-badge good">Good</span>
-          <div class="distribution-bar">
-            <div class="dist-good" style="width: 78%"></div>
-            <div class="dist-improve" style="width: 14%"></div>
-            <div class="dist-poor" style="width: 8%"></div>
+        <div class="metric-card">
+          <div class="mc-header">
+            <div class="mc-title">INP</div>
+            <div class="mc-value">142<span class="unit">ms</span></div>
           </div>
-          <div class="distribution-labels">
-            <span>78% good</span><span>14% NI</span><span>8% poor</span>
+          <div class="mc-subtitle">
+            <span class="mc-metric-name">Interaction to Next Paint</span>
+            <span class="mc-badge good">good</span>
           </div>
-          <div class="trend improving">&darr; -5% over 7 days</div>
+          <div class="dist-track">
+            <div class="dist-fill">
+              <div class="seg-good" style="width: 78%"></div>
+              <div class="seg-ni" style="width: 14%"></div>
+              <div class="seg-poor" style="width: 8%"></div>
+            </div>
+            <div class="p75-dot" style="left: 78%"></div>
+          </div>
+          <div class="mc-footer">
+            <span class="mc-pill">samples: 890</span>
+            <span class="mc-pill trend-improving">trend: &#8600; 5%</span>
+          </div>
         </div>
 
-        <div class="metric-card" data-rating="needs-improvement">
-          <h3>CLS</h3>
-          <div class="metric-value">0.18<span class="metric-unit"></span></div>
-          <span class="rating-badge needs-improvement">Needs Improvement</span>
-          <div class="distribution-bar">
-            <div class="dist-good" style="width: 44%"></div>
-            <div class="dist-improve" style="width: 36%"></div>
-            <div class="dist-poor" style="width: 20%"></div>
+        <div class="metric-card">
+          <div class="mc-header">
+            <div class="mc-title">CLS</div>
+            <div class="mc-value">0.18</div>
           </div>
-          <div class="distribution-labels">
-            <span>44% good</span><span>36% NI</span><span>20% poor</span>
+          <div class="mc-subtitle">
+            <span class="mc-metric-name">Cumulative Layout Shift</span>
+            <span class="mc-badge needs-improvement">needs improvement</span>
           </div>
-          <div class="trend stable">&rarr; flat over 7 days</div>
+          <div class="dist-track">
+            <div class="dist-fill">
+              <div class="seg-good" style="width: 44%"></div>
+              <div class="seg-ni" style="width: 36%"></div>
+              <div class="seg-poor" style="width: 20%"></div>
+            </div>
+            <div class="p75-dot" style="left: 44%"></div>
+          </div>
+          <div class="mc-footer">
+            <span class="mc-pill">samples: 1,240</span>
+            <span class="mc-pill trend-stable">trend: &#8594; flat</span>
+          </div>
         </div>
 
       </div>
