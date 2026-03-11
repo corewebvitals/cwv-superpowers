@@ -32,7 +32,7 @@ Core Web Vitals diagnosis and fixing skills for AI coding agents — powered by 
 /plugin marketplace add corewebvitals/cwv-superpowers
 
 # Install the plugin
-/plugin install cwv-superpowers@cwv-superpowers
+/plugin install cwv-superpowers@cwv-superpower
 ```
 
 Then set up CoreDash MCP if you haven't already:
@@ -59,7 +59,7 @@ The CoreDash MCP server works with any client that supports HTTP MCP servers:
 | Endpoint | `https://app.coredash.app/api/mcp` |
 | Header | `Authorization: Bearer cdk_YOUR_API_KEY` |
 
-See `skills/cwv-superpower/modules/setup.md` for detailed setup instructions per client (Claude Desktop, Windsurf, Gemini CLI).
+See `plugins/cwv-superpowers/skills/cwv-superpower/modules/setup.md` for detailed setup instructions per client (Claude Desktop, Windsurf, Gemini CLI).
 
 ### Verify installation
 
@@ -118,17 +118,20 @@ The skill handles capability detection automatically. It works with:
 ## Skill Structure
 
 ```
-skills/cwv-superpower/
-├── SKILL.md              ← Main orchestrator (start here)
-├── modules/
-│   ├── setup.md          ← CoreDash MCP installation guide
-│   ├── lcp.md            ← LCP diagnosis (phases + attribution)
-│   ├── inp.md            ← INP diagnosis (phases + LOAF scripts)
-│   ├── cls.md            ← CLS diagnosis (cause pattern matching)
-│   └── chrome.md         ← Chrome tracing (per-phase investigation)
-└── templates/
-    ├── report-rum.html   ← RUM-only report template
-    └── report-full.html  ← Full report (filmstrip, waterfall, tabs)
+plugins/cwv-superpowers/
+├── .claude-plugin/
+│   └── plugin.json       ← Plugin metadata
+└── skills/cwv-superpower/
+    ├── SKILL.md           ← Main orchestrator (start here)
+    ├── modules/
+    │   ├── setup.md       ← CoreDash MCP installation guide
+    │   ├── lcp.md         ← LCP diagnosis (phases + attribution)
+    │   ├── inp.md         ← INP diagnosis (phases + LOAF scripts)
+    │   ├── cls.md         ← CLS diagnosis (cause pattern matching)
+    │   └── chrome.md      ← Chrome tracing (per-phase investigation)
+    └── templates/
+        ├── report-rum.html  ← RUM-only report template
+        └── report-full.html ← Full report (filmstrip, waterfall, tabs)
 ```
 
 ## Example Output
