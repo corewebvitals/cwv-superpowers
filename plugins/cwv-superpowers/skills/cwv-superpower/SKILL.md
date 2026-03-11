@@ -172,7 +172,7 @@ Pass to the Chrome module:
 - **Bottleneck phase or cause pattern** — from the diagnosis module (e.g., "LOADDELAY", "INPUTDELAY", "font swap on new visitors").
 - **Element selector** — from CoreDash attribution.
 
-Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters.
+Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters. The Chrome module also collects data and screenshots for the report's visual evidence: network waterfall data (rendered as inline SVG), page filmstrip screenshots (captured via `browser_take_screenshot` at key load moments), and INP interaction timeline data when applicable.
 
 Proceed to **Step 4**.
 
@@ -229,6 +229,10 @@ Ask the user:
 ### Option 3: Both
 
 Apply the fix first (Option 1), then generate the report (Option 2) documenting the change. The report becomes PR-ready evidence.
+
+### Done
+
+After completing the user's chosen option, STOP. Print a one-line summary of what was delivered (e.g., "Fix applied to `templates/product.html`" or "Report written to `cwv-report.html`"). Do not continue to other steps, suggest additional analyses, or offer follow-up actions unless the user asks.
 
 ---
 

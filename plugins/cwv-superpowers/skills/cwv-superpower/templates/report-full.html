@@ -888,40 +888,21 @@ code {
     <h2 class="section-title">Page Load Filmstrip</h2>
     <div class="filmstrip-container">
       <div class="filmstrip-strip">
-        <!-- Agent: Insert filmstrip frames as <div class="filmstrip-frame"><img src="data:image/png;base64,..." /><span class="frame-time">0.0s</span></div> elements -->
-        <!-- Placeholder frames for template preview -->
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 1%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 0.0s" />
-          <span class="frame-time">0.0s</span>
-        </div>
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 2%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 0.5s" />
-          <span class="frame-time">0.5s</span>
-        </div>
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 3%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 1.0s" />
-          <span class="frame-time">1.0s</span>
-        </div>
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 4%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 1.5s" />
-          <span class="frame-time">1.5s</span>
-        </div>
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 5%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 2.0s" />
-          <span class="frame-time">2.0s</span>
-        </div>
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 6%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 2.5s" />
-          <span class="frame-time">2.5s</span>
-        </div>
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 7%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 3.0s" />
-          <span class="frame-time">3.0s</span>
-        </div>
-        <div class="filmstrip-frame" onclick="openLightbox(this)">
-          <img src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='150' height='267' fill='%23f3f4f6'%3E%3Crect width='150' height='267' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='14'%3EFrame 8%3C/text%3E%3C/svg%3E" alt="Filmstrip frame at 3.5s" />
-          <span class="frame-time">3.5s</span>
-        </div>
+        <!-- Agent: Capture real page screenshots using browser_take_screenshot at key moments
+             during page load. Insert each as:
+             <div class="filmstrip-frame" onclick="openLightbox(this)">
+               <img src="data:image/png;base64,SCREENSHOT_BASE64_HERE" alt="Filmstrip frame at Xs" />
+               <span class="frame-time">X.Xs</span>
+             </div>
+
+             Capture sequence (use browser_evaluate to detect timing):
+             1. Immediately after browser_navigate (blank/white page) — label "0.0s"
+             2. After FCP (run: await new Promise(r => new PerformanceObserver(l => { r(); }).observe({type:'paint',buffered:true})))
+             3. After LCP element appears (check DOM for LCP element presence)
+             4. After load event + 1s (final state)
+
+             If you cannot capture timed screenshots, capture at least ONE screenshot of the
+             fully loaded page and insert it as a single frame labeled with the total load time. -->
       </div>
     </div>
     <div class="filmstrip-hint">Click any frame to enlarge</div>
@@ -987,14 +968,119 @@ code {
       <!-- Agent: Replace with Chrome evidence text + screenshots -->
       <p><strong>Evidence from lab trace (Chrome):</strong> Chrome trace evidence placeholder. The agent will replace this with 2-3 sentences describing what the waterfall, flamechart, or filmstrip revealed about the specific bottleneck.</p>
       <p><strong>Combined:</strong> Combined evidence placeholder. The agent will tie the Chrome finding to the RUM bottleneck in 1-2 sentences explaining the mechanical cause.</p>
-      <!-- SECTION:WATERFALL_SCREENSHOT -->
-      <!-- Agent: Insert waterfall screenshot as base64 img with class="evidence-screenshot" -->
-      <img class="evidence-screenshot" src="data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='800' height='300' fill='%23f3f4f6'%3E%3Crect width='800' height='300' fill='%23e5e7eb'/%3E%3Ctext x='50%25' y='50%25' dominant-baseline='middle' text-anchor='middle' fill='%239ca3af' font-family='sans-serif' font-size='16'%3ENetwork Waterfall Screenshot%3C/text%3E%3C/svg%3E" alt="Network waterfall showing resource loading sequence" onclick="openLightbox(this)" />
+      <!-- SECTION:WATERFALL_SVG -->
+      <!-- Agent: Replace the waterfallData array below with real data from browser_network_requests
+           + browser_evaluate running performance.getEntriesByType('resource').
+           Each entry: { name: "filename.js", start: 120, dns: 5, connect: 15, tls: 10, ttfb: 80, download: 200, size: 45000, isLcp: false }
+           Set isLcp: true on the LCP resource. Set lcpTime to the LCP timestamp in ms. -->
+      <div id="waterfall-chart"></div>
       <div class="screenshot-caption">Network waterfall — LCP resource highlighted</div>
-      <!-- /SECTION:WATERFALL_SCREENSHOT -->
-      <!-- SECTION:FLAMECHART -->
-      <!-- Agent: Insert flamechart screenshot as base64 img (INP only, omit for LCP/CLS) -->
-      <!-- /SECTION:FLAMECHART -->
+      <script>
+      (function() {
+        // WATERFALL_DATA_START
+        var waterfallData = [
+          { name: "document", start: 0, dns: 10, connect: 20, tls: 15, ttfb: 200, download: 50, size: 45000, isLcp: false },
+          { name: "style.css", start: 300, dns: 0, connect: 0, tls: 0, ttfb: 40, download: 80, size: 12000, isLcp: false },
+          { name: "hero.jpg", start: 350, dns: 0, connect: 0, tls: 0, ttfb: 60, download: 400, size: 85000, isLcp: true },
+          { name: "main.js", start: 310, dns: 0, connect: 0, tls: 0, ttfb: 50, download: 300, size: 120000, isLcp: false }
+        ];
+        var lcpTime = 810;
+        // WATERFALL_DATA_END
+
+        var ROW_H = 28, PAD_TOP = 30, PAD_LEFT = 160, PAD_RIGHT = 40, PAD_BOTTOM = 30;
+        var W = 850;
+        var H = PAD_TOP + waterfallData.length * ROW_H + PAD_BOTTOM;
+        var maxTime = Math.max(lcpTime * 1.15, Math.max.apply(null, waterfallData.map(function(r) {
+          return r.start + r.dns + r.connect + r.tls + r.ttfb + r.download;
+        })));
+        var barW = W - PAD_LEFT - PAD_RIGHT;
+
+        function x(ms) { return PAD_LEFT + (ms / maxTime) * barW; }
+        function shortName(url) {
+          var parts = url.split('/'); var f = parts[parts.length - 1] || parts[parts.length - 2] || url;
+          return f.split('?')[0].substring(0, 28);
+        }
+        function fmtSize(b) { return b >= 1000 ? (b / 1024).toFixed(0) + 'kB' : b + 'B'; }
+
+        var colors = { dns: '#8b5cf6', connect: '#3b82f6', tls: '#06b6d4', ttfb: '#5b6abf', download: '#3b9ddb' };
+
+        var svg = '<svg xmlns="http://www.w3.org/2000/svg" width="' + W + '" height="' + H + '" style="font-family:-apple-system,BlinkMacSystemFont,sans-serif;font-size:11px;background:#fff;border:1px solid #e5e7eb;border-radius:8px">';
+
+        // Axis ticks
+        var tickCount = 6;
+        for (var t = 0; t <= tickCount; t++) {
+          var ms = (maxTime / tickCount) * t;
+          var tx = x(ms);
+          svg += '<line x1="' + tx + '" y1="' + PAD_TOP + '" x2="' + tx + '" y2="' + (H - PAD_BOTTOM) + '" stroke="#f3f4f6" stroke-width="1"/>';
+          svg += '<text x="' + tx + '" y="' + (PAD_TOP - 8) + '" fill="#9ca3af" text-anchor="middle" font-size="10">' + (ms >= 1000 ? (ms/1000).toFixed(1) + 's' : Math.round(ms) + 'ms') + '</text>';
+        }
+
+        // LCP marker
+        var lcpX = x(lcpTime);
+        svg += '<line x1="' + lcpX + '" y1="' + PAD_TOP + '" x2="' + lcpX + '" y2="' + (H - PAD_BOTTOM) + '" stroke="#ff4e42" stroke-width="2" stroke-dasharray="6,3"/>';
+        svg += '<text x="' + lcpX + '" y="' + (H - PAD_BOTTOM + 16) + '" fill="#ff4e42" text-anchor="middle" font-weight="bold" font-size="11">LCP ' + (lcpTime >= 1000 ? (lcpTime/1000).toFixed(1) + 's' : lcpTime + 'ms') + '</text>';
+
+        // Rows
+        for (var i = 0; i < waterfallData.length; i++) {
+          var r = waterfallData[i];
+          var rowY = PAD_TOP + i * ROW_H + 4;
+          var barY = rowY + 2;
+          var barH = ROW_H - 10;
+          var highlight = r.isLcp;
+
+          // Row background for LCP
+          if (highlight) {
+            svg += '<rect x="0" y="' + rowY + '" width="' + W + '" height="' + ROW_H + '" fill="#fff5f5" rx="2"/>';
+          }
+
+          // Label
+          var label = shortName(r.name);
+          svg += '<text x="' + (PAD_LEFT - 8) + '" y="' + (rowY + ROW_H / 2 + 1) + '" fill="' + (highlight ? '#dc2626' : '#374151') + '" text-anchor="end" font-weight="' + (highlight ? '700' : '400') + '" font-size="11">' + label + '</text>';
+
+          // Size
+          svg += '<text x="' + (PAD_LEFT - 8) + '" y="' + (rowY + ROW_H / 2 + 12) + '" fill="#9ca3af" text-anchor="end" font-size="9">' + fmtSize(r.size) + '</text>';
+
+          // Segments
+          var cx = x(r.start);
+          var phases = [['dns', r.dns], ['connect', r.connect], ['tls', r.tls], ['ttfb', r.ttfb], ['download', r.download]];
+          for (var p = 0; p < phases.length; p++) {
+            var dur = phases[p][1];
+            if (dur <= 0) continue;
+            var segW = Math.max((dur / maxTime) * barW, 1);
+            svg += '<rect x="' + cx + '" y="' + barY + '" width="' + segW + '" height="' + barH + '" fill="' + colors[phases[p][0]] + '" rx="2">';
+            svg += '<title>' + phases[p][0].toUpperCase() + ': ' + Math.round(dur) + 'ms</title></rect>';
+            cx += segW;
+          }
+
+          // LCP marker dot
+          if (highlight) {
+            svg += '<circle cx="' + (PAD_LEFT - 2) + '" cy="' + (rowY + ROW_H / 2 + 1) + '" r="3" fill="#ff4e42"/>';
+          }
+        }
+
+        // Legend
+        var legendY = H - 6;
+        var legendItems = [['DNS','#8b5cf6'],['Connect','#3b82f6'],['TLS','#06b6d4'],['TTFB','#5b6abf'],['Download','#3b9ddb']];
+        /* legend rendered below chart via HTML instead */
+
+        svg += '</svg>';
+
+        var container = document.getElementById('waterfall-chart');
+        if (container) {
+          container.innerHTML = svg;
+          container.innerHTML += '<div style="display:flex;gap:14px;margin-top:8px;font-size:11px;color:#6b7280;flex-wrap:wrap">' +
+            legendItems.map(function(l) { return '<span style="display:flex;align-items:center;gap:4px"><span style="width:10px;height:10px;border-radius:2px;background:' + l[1] + ';display:inline-block"></span>' + l[0] + '</span>'; }).join('') +
+            '<span style="display:flex;align-items:center;gap:4px"><span style="width:14px;height:2px;background:#ff4e42;display:inline-block;border-top:1px dashed #ff4e42"></span>LCP</span>' +
+            '</div>';
+        }
+      })();
+      </script>
+      <!-- /SECTION:WATERFALL_SVG -->
+      <!-- SECTION:INP_TIMELINE -->
+      <!-- Agent: For INP reports only, replace inpData below with real data from browser_evaluate
+           running PerformanceObserver for 'event' entries.
+           For LCP/CLS reports, remove this entire SECTION:INP_TIMELINE block. -->
+      <!-- /SECTION:INP_TIMELINE -->
     </div>
   </div>
   <!-- /SECTION:ROOT_CAUSE -->

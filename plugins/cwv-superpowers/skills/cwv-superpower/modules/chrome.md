@@ -136,12 +136,92 @@ In the Performance panel, look for red "Layout Shift" markers in the Experience 
 3. Identify which CSS properties are being animated (look for `top`, `left`, `width`, `height`, `margin`, `padding`)
 
 ## Evidence Capture
-List what to capture for the report:
-1. **Filmstrip** — 10-15 sequential screenshots covering navigation start through LCP (or through the layout shift for CLS).
-2. **Waterfall screenshot** — network waterfall with LCP resource highlighted/annotated.
-3. **Flamechart screenshot** (INP only) — main thread flamechart centered on the interaction, bottleneck area highlighted.
-4. **Shift screenshots** (CLS only) — before and after showing the layout change.
-5. **Element screenshot** — the identified element highlighted in the viewport.
+
+Collect data and screenshots using Playwright MCP tools. These feed into the report template's SVG renderers and filmstrip section.
+
+### Network waterfall data (for SVG waterfall in report)
+1. Run `browser_network_requests` to get all HTTP requests with timing.
+2. Run `browser_evaluate` with this script to get per-resource timing breakdown:
+   ```js
+   JSON.stringify(performance.getEntriesByType('resource').map(e => ({
+     name: e.name.split('/').pop().split('?')[0] || e.name,
+     start: Math.round(e.startTime),
+     dns: Math.round(e.domainLookupEnd - e.domainLookupStart),
+     connect: Math.round(e.connectEnd - e.connectStart),
+     tls: Math.round(e.secureConnectionStart > 0 ? e.connectEnd - e.secureConnectionStart : 0),
+     ttfb: Math.round(e.responseStart - e.requestStart),
+     download: Math.round(e.responseEnd - e.responseStart),
+     size: e.transferSize,
+     isLcp: false
+   })))
+   ```
+3. Also get navigation timing for the document itself:
+   ```js
+   JSON.stringify((function(n) { return {
+     name: 'document', start: 0,
+     dns: Math.round(n.domainLookupEnd - n.domainLookupStart),
+     connect: Math.round(n.connectEnd - n.connectStart),
+     tls: Math.round(n.secureConnectionStart > 0 ? n.connectEnd - n.secureConnectionStart : 0),
+     ttfb: Math.round(n.responseStart - n.requestStart),
+     download: Math.round(n.responseEnd - n.responseStart),
+     size: 0, isLcp: false
+   }; })(performance.getEntriesByType('navigation')[0]))
+   ```
+4. Get the LCP time and resource URL:
+   ```js
+   JSON.stringify(await new Promise(r => new PerformanceObserver(l => {
+     var entries = l.getEntries(); var last = entries[entries.length - 1];
+     r({ time: Math.round(last.startTime), url: last.url || '', element: last.element?.tagName });
+   }).observe({ type: 'largest-contentful-paint', buffered: true })))
+   ```
+5. When populating the report template, replace the `waterfallData` array and `lcpTime` value inside the `WATERFALL_DATA_START` / `WATERFALL_DATA_END` markers with real data. Set `isLcp: true` on the entry matching the LCP resource URL. Keep only the top 15-20 resources by start time to avoid visual clutter.
+
+### Page filmstrip (real page screenshots)
+1. Use `browser_navigate` to go to the target URL.
+2. Take `browser_take_screenshot` immediately — this captures the blank/loading state. Label: "0.0s".
+3. Run `browser_evaluate` to wait for first contentful paint:
+   ```js
+   await new Promise(r => new PerformanceObserver(l => r()).observe({ type: 'paint', buffered: true }));
+   Math.round(performance.getEntriesByType('paint').find(e => e.name === 'first-contentful-paint')?.startTime || 0)
+   ```
+   Then take `browser_take_screenshot`. Label with the FCP time.
+4. Run `browser_evaluate` to wait for LCP:
+   ```js
+   await new Promise(r => setTimeout(r, 3000));
+   Math.round((await new Promise(r => new PerformanceObserver(l => {
+     var e = l.getEntries(); r(e[e.length-1].startTime);
+   }).observe({ type: 'largest-contentful-paint', buffered: true }))))
+   ```
+   Then take `browser_take_screenshot`. Label with the LCP time.
+5. Wait 2 more seconds, take a final `browser_take_screenshot`. Label: "Loaded".
+6. Encode each screenshot as a base64 data URI and insert into the filmstrip frames in the report template.
+
+If timed screenshots are not possible (e.g. page loads too fast to capture intermediate states), capture at minimum ONE fully-loaded screenshot and insert it as the single filmstrip frame.
+
+### Interaction timeline data (INP only)
+1. Before triggering the interaction, run `browser_evaluate` to set up observers:
+   ```js
+   window.__cwvEvents = []; window.__cwvTasks = [];
+   new PerformanceObserver(l => l.getEntries().forEach(e => window.__cwvEvents.push({
+     name: e.name, start: Math.round(e.startTime),
+     inputDelay: Math.round(e.processingStart - e.startTime),
+     processing: Math.round(e.processingEnd - e.processingStart),
+     presentation: Math.round(e.startTime + e.duration - e.processingEnd),
+     duration: Math.round(e.duration)
+   }))).observe({ type: 'event', buffered: true, durationThreshold: 16 });
+   new PerformanceObserver(l => l.getEntries().forEach(e => window.__cwvTasks.push({
+     start: Math.round(e.startTime), duration: Math.round(e.duration)
+   }))).observe({ type: 'longtask', buffered: true });
+   ```
+2. Trigger the interaction (click, type, etc.).
+3. Wait 1 second, then collect:
+   ```js
+   JSON.stringify({ events: window.__cwvEvents, longTasks: window.__cwvTasks })
+   ```
+4. Use this data in the report's INP timeline section to show the input delay / processing / presentation breakdown visually.
+
+### Element screenshot
+Use `browser_take_screenshot` of the full page (or a specific element if supported) with the identified problem element visible in the viewport. This goes into the report as supporting evidence.
 
 ## Output format
 
@@ -154,5 +234,5 @@ Chrome trace findings:
 - Bottleneck phase confirmed: [PHASE] — [what Chrome showed]
 - Root cause evidence: [2-3 sentences describing what was seen]
 - Key measurement: [specific timing or gap that proves the bottleneck]
-- Evidence captured: [list of screenshots/filmstrip assets]
+- Evidence captured: [filmstrip screenshots: N frames, waterfall data: N resources, element screenshot]
 ```
