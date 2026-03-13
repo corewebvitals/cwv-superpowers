@@ -1,7 +1,8 @@
 ---
 name: cwv-superpower
 description: Diagnose and fix Core Web Vitals (LCP, INP, CLS) issues using CoreDash real user monitoring data and Chrome browser tools. Use when the user asks about web performance, page speed, slow pages, or Core Web Vitals.
-version: 1.1.4
+version: 1.1.5
+allowed-tools: Read, Write, Edit, Glob, Grep                                                                                                                                              
 ---
 
 # CWV Superpower
