@@ -194,6 +194,8 @@ Present the root cause in this format:
 > **Evidence from lab trace (Chrome):** [2-3 sentences. Include what the waterfall/flamechart/filmstrip showed — the specific gap, blocking resource, long task, or layout shift that corresponds to the RUM bottleneck.]
 >
 > **Combined:** [1-2 sentences tying both together. How the Chrome finding mechanically explains the RUM bottleneck.]
+>
+> **Distribution shape (CoreDash):** [1-2 sentences. Only include when histogram data was used during diagnosis. Describe what the distribution revealed and how it affected the diagnosis — e.g., "25% of mobile users experience LCP above 4000ms despite a passing p75 of 2400ms" or "Distribution is bimodal: fast group clusters around 1200ms, slow group around 3800ms, separated by visitor type."]
 
 ### RUM-only tier (no Chrome)
 
@@ -202,6 +204,8 @@ Present the root cause in this format:
 > **Evidence from real users (CoreDash):** [2-3 sentences. Same detail as above.]
 >
 > **Chrome would confirm:** [One sentence describing what a Chrome trace would show — the specific gap, blocking resource, or DOM mutation to look for.]
+>
+> **Distribution shape (CoreDash):** [1-2 sentences. Only include when histogram data was used during diagnosis. Describe what the distribution revealed and how it affected the diagnosis — e.g., "25% of mobile users experience LCP above 4000ms despite a passing p75 of 2400ms" or "Distribution is bimodal: fast group clusters around 1200ms, slow group around 3800ms, separated by visitor type."]
 
 Proceed to **Step 5**.
 
@@ -226,6 +230,7 @@ Ask the user:
 
 - **Full tier:** Read `templates/report-full.html`. Populate it with all findings (metrics, breakdown, filmstrip, waterfall, root cause, recommended fix). Write the file.
 - **RUM-only tier:** Read `templates/report-rum.html`. Populate it with RUM findings (metrics, breakdown, attribution, root cause, recommended fix — no Chrome visuals). Write the file.
+- **Histogram data for report:** Before populating the template, ensure histogram data exists for each diagnosed metric. If histogram data was collected during Step 2B investigation, reuse it. If not, call `get_histogram` for each diagnosed metric with the same filters used during diagnosis. This data populates the `<!-- SECTION:HISTOGRAM -->` chart in the report.
 
 ### Option 3: Both
 
@@ -268,6 +273,24 @@ When calling `get_timeseries` for trend data, use the `date: "-7d"` parameter to
 ```
 get_timeseries with metrics: "LCP", date: "-7d", filters: { ... }
 ```
+
+---
+
+## Distribution Checking
+
+When the initial diagnosis raises a question that p75 and breakdowns can't answer — the severity doesn't match the breakdown, the issue seems to affect some users but not others, the p75 is borderline, or the diagnosis is ambiguous — use `get_histogram` to check the distribution shape.
+
+```
+get_histogram with metric: "LCP", date: "-7d", filters: { ... }
+```
+
+`get_histogram` takes a single `metric` (not `metrics` plural), `filters`, and `date`. It returns ~40 fixed-width buckets with counts and ratings. Bucket widths: LCP 250ms, INP 25ms, CLS 0.025, FCP 200ms, TTFB 125ms.
+
+**The one question to ask:** "Does this distribution change the story?" If yes — describe what you see, how it changes the diagnosis, and investigate further if needed (filtered histograms to isolate subpopulations). If no — move on.
+
+**Interpretation caveat:** Histograms reveal distribution shape but can mislead. Fixed bucket widths can split natural clusters across boundaries. Aggregating mixed segments (mobile + desktop) can produce artificial shapes that vanish when filtered. A smooth histogram can hide time-based spikes that `get_timeseries` would catch. Cross-reference histogram shape with other evidence before drawing conclusions from shape alone.
+
+If the shape suggests the problem isn't uniform, you may call additional filtered histograms to isolate subpopulations. Common useful splits: device, visitor type, network speed. Only do this if it would change the diagnosis or the fix.
 
 ---
 
