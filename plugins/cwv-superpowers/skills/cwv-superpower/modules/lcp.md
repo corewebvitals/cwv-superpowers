@@ -9,6 +9,7 @@ Run the attribution, breakdown, and trend calls below, then interpret results.
    ↳ Checking element type...
    ↳ Checking priority state...
    ↳ Breaking down LCP phases...
+   ↳ Analyzing distribution shape... (if warranted)
    ↳ Checking 7-day trend...
 ```
 
@@ -88,6 +89,29 @@ Returns p75 values for each of the four LCP sub-phases.
 - LOADTIME = 800ms (21%)
 - RENDERDELAY = 300ms (8%)
 - Bottleneck = **LOADDELAY** (55% of total LCP)
+
+---
+
+## Distribution investigation (optional)
+
+If the breakdown findings raise a question — severity doesn't match the phases, the p75 is borderline (within 10% of the 2500ms threshold), or the attribution shows multiple LCP elements with different types — use `get_histogram` to check the distribution shape.
+
+Print: `   ↳ Analyzing distribution shape...`
+
+```
+get_histogram with:
+  metric: "LCP"
+  filters: { "[FILTER_KEY]": "[FILTER_VALUE]", "d": "mobile" }
+  date: "-7d"
+```
+
+Ask yourself: **"Does this distribution change the story?"** If the shape reveals something the p75 masked — a subpopulation getting hammered, a bimodal split between fast text-LCP users and slow image-LCP users, a heavy tail extending well past 4000ms — describe what you see and how it changes the diagnosis. If the shape confirms what you already know, move on without mentioning it.
+
+If the shape suggests distinct user groups, you may call 1-2 filtered histograms to isolate what separates them (device, visitor type, network speed). Only do this if it would change the fix.
+
+**Caveat:** Histograms can mislead. Mixed segments produce artificial shapes. Fixed 250ms bucket widths can split natural clusters. Cross-reference with the breakdown and attribution data.
+
+If the diagnosis is already clear-cut from the breakdown, skip this section entirely.
 
 ---
 
@@ -211,5 +235,6 @@ LCP diagnosis for [PAGE]:
   - LOADTIME: [VALUE]ms ([X]%)
   - RENDERDELAY: [VALUE]ms ([X]%)
 - Trend (7d): [improving/stable/regressing] ([X]% change)
+- Distribution shape: [observation — what it means for this diagnosis] (only if histogram was used)
 - Chrome should investigate: [SPECIFIC TRACE GOAL FROM BOTTLENECK SECTION]
 ```
