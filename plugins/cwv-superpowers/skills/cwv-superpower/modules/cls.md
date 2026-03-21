@@ -11,6 +11,7 @@ This module is invoked by SKILL.md with a target filter (`ff` or `u` with value)
    ↳ Comparing new vs repeat visitors...
    ↳ Checking network speed sensitivity...
    ↳ Checking 7-day trend...
+   ↳ Analyzing distribution shape... (if warranted)
 ```
 
 ---
@@ -73,6 +74,29 @@ get_timeseries metric: CLS, filters: { "[FILTER_KEY]": "[FILTER_VALUE]" }, date:
 Interpretation:
 - A sudden spike = a deploy introduced the shift (check release timing).
 - Steady elevated CLS = structural issue baked into the page template.
+
+---
+
+## Distribution investigation (optional)
+
+If the cross-dimensional analysis leaves the cause unclear, or CLS is borderline (within 20% of the 0.1 threshold), use `get_histogram` to check the distribution shape.
+
+Print: `   ↳ Analyzing distribution shape...`
+
+```
+get_histogram with:
+  metric: "CLS"
+  filters: { "[FILTER_KEY]": "[FILTER_VALUE]" }
+  date: "-7d"
+```
+
+Ask yourself: **"Does this distribution change the story?"** CLS distributions are often heavily left-skewed — most users score 0 or near-0, and a smaller group gets hit hard. The histogram reveals how concentrated the damage is: a few users with extreme shifts (likely a specific viewport or interaction trigger) versus a broad population with moderate shifts (likely a structural template issue).
+
+If the shape suggests distinct groups, you may call 1-2 filtered histograms to isolate what separates them (device type is the most common split for CLS). Only do this if it would change the fix.
+
+**Caveat:** Histograms can mislead. Mixed segments produce artificial shapes. Fixed 0.025 bucket widths can split natural clusters. Cross-reference with the device, visitor type, and network speed analysis.
+
+If the cause pattern is already clear from the cross-dimensional analysis, skip this section entirely.
 
 ---
 
@@ -153,5 +177,6 @@ CLS diagnosis for [PAGE]:
 - Network sensitivity: [worse on slow connections: yes/no]
 - Likely cause: [PATTERN NAME] — [ONE SENTENCE EXPLANATION]
 - Trend (7d): [improving/stable/regressing] ([X]% change)
+- Distribution shape: [observation — what it means for this diagnosis] (only if histogram was used)
 - Chrome should investigate: [SPECIFIC TRACE GOAL FROM MATCHED PATTERN]
 ```
