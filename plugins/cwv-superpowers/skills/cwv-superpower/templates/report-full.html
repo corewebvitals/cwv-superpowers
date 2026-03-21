@@ -219,6 +219,39 @@ body {
   box-shadow: 0 1px 3px rgba(0,0,0,0.15);
 }
 
+/* --- Histogram chart --- */
+.histogram-container {
+  margin: 4px 0 12px;
+}
+
+.histogram-svg {
+  width: 100%;
+  height: auto;
+  display: block;
+}
+
+.histogram-bar-good { fill: var(--cwv-good); }
+.histogram-bar-ni { fill: var(--cwv-ni); }
+.histogram-bar-poor { fill: var(--cwv-poor); }
+
+.histogram-p75-line {
+  stroke: var(--gray-800);
+  stroke-width: 1.5;
+  stroke-dasharray: 4 3;
+}
+
+.histogram-axis-label {
+  fill: var(--gray-400);
+  font-size: 10px;
+  font-family: var(--font-mono, 'SF Mono', 'Fira Code', 'Fira Mono', monospace);
+}
+
+.histogram-caption {
+  font-size: 12px;
+  color: var(--gray-400);
+  margin-top: 4px;
+}
+
 .mc-footer { display: flex; gap: 10px; align-items: center; flex-wrap: wrap; }
 
 .mc-pill {
@@ -640,6 +673,10 @@ code {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
   }
+  .histogram-bar-good, .histogram-bar-ni, .histogram-bar-poor {
+    -webkit-print-color-adjust: exact;
+    print-color-adjust: exact;
+  }
   .mc-badge, .seg-good, .seg-ni, .seg-poor, .p75-dot, .waterfall-segment {
     -webkit-print-color-adjust: exact;
     print-color-adjust: exact;
@@ -681,6 +718,7 @@ code {
          - mc-subtitle: full metric name (left) + rating badge (right)
          - dist-track: distribution bar with good/NI/poor segments + p75 dot marker
            Set p75 dot left% = good%. Segments: seg-good width=good%, seg-ni width=NI%, seg-poor width=poor%
+         - SECTION:HISTOGRAM: histogram bar chart (only when histogram data exists for this metric)
          - mc-footer: samples pill + trend pill (add trend-improving/trend-worsening/trend-stable class)
          Include only metrics relevant to the page (typically LCP, INP, CLS; optionally FCP, TTFB). -->
 
@@ -701,6 +739,24 @@ code {
         </div>
         <div class="p75-dot" style="left: 38%"></div>
       </div>
+      <!-- SECTION:HISTOGRAM -->
+      <!-- Agent: When histogram data exists for this metric, insert an inline SVG bar chart here.
+           Structure:
+           - <div class="histogram-container">
+           -   <svg class="histogram-svg" viewBox="0 0 WIDTH HEIGHT" preserveAspectRatio="xMidYMid meet">
+           -     For each bucket: <rect class="histogram-bar-{rating}" x="{x}" y="{y}" width="{barWidth}" height="{barHeight}" />
+           -     P75 marker: <line class="histogram-p75-line" x1="{p75x}" y1="0" x2="{p75x}" y2="{chartHeight}" />
+           -     X-axis labels: <text class="histogram-axis-label" x="{x}" y="{labelY}">{value}{unit}</text>
+           -   </svg>
+           -   <div class="histogram-caption">{total} page loads &middot; {period}</div>
+           - </div>
+           SVG sizing: viewBox width = number of buckets * (barWidth + gap). Height ~120.
+           Bar height: normalized so tallest bucket fills chart height. barHeight = (count / maxCount) * chartHeight.
+           Bar color class: histogram-bar-good, histogram-bar-ni, or histogram-bar-poor based on bucket rating.
+           P75 line: vertical dashed line at the x position corresponding to the p75 value.
+           X-axis labels: show values at every 4th-5th bucket to avoid crowding.
+           If no histogram data was collected for this metric, leave this section empty (no placeholder text). -->
+      <!-- /SECTION:HISTOGRAM -->
       <div class="mc-footer">
         <span class="mc-pill">samples: 1,240</span>
         <span class="mc-pill trend-worsening">trend: &#8599; 8.9%</span>
@@ -724,6 +780,24 @@ code {
         </div>
         <div class="p75-dot" style="left: 82%"></div>
       </div>
+      <!-- SECTION:HISTOGRAM -->
+      <!-- Agent: When histogram data exists for this metric, insert an inline SVG bar chart here.
+           Structure:
+           - <div class="histogram-container">
+           -   <svg class="histogram-svg" viewBox="0 0 WIDTH HEIGHT" preserveAspectRatio="xMidYMid meet">
+           -     For each bucket: <rect class="histogram-bar-{rating}" x="{x}" y="{y}" width="{barWidth}" height="{barHeight}" />
+           -     P75 marker: <line class="histogram-p75-line" x1="{p75x}" y1="0" x2="{p75x}" y2="{chartHeight}" />
+           -     X-axis labels: <text class="histogram-axis-label" x="{x}" y="{labelY}">{value}{unit}</text>
+           -   </svg>
+           -   <div class="histogram-caption">{total} page loads &middot; {period}</div>
+           - </div>
+           SVG sizing: viewBox width = number of buckets * (barWidth + gap). Height ~120.
+           Bar height: normalized so tallest bucket fills chart height. barHeight = (count / maxCount) * chartHeight.
+           Bar color class: histogram-bar-good, histogram-bar-ni, or histogram-bar-poor based on bucket rating.
+           P75 line: vertical dashed line at the x position corresponding to the p75 value.
+           X-axis labels: show values at every 4th-5th bucket to avoid crowding.
+           If no histogram data was collected for this metric, leave this section empty (no placeholder text). -->
+      <!-- /SECTION:HISTOGRAM -->
       <div class="mc-footer">
         <span class="mc-pill">samples: 890</span>
         <span class="mc-pill trend-stable">trend: &#8594; flat</span>
@@ -747,6 +821,24 @@ code {
         </div>
         <div class="p75-dot" style="left: 55%"></div>
       </div>
+      <!-- SECTION:HISTOGRAM -->
+      <!-- Agent: When histogram data exists for this metric, insert an inline SVG bar chart here.
+           Structure:
+           - <div class="histogram-container">
+           -   <svg class="histogram-svg" viewBox="0 0 WIDTH HEIGHT" preserveAspectRatio="xMidYMid meet">
+           -     For each bucket: <rect class="histogram-bar-{rating}" x="{x}" y="{y}" width="{barWidth}" height="{barHeight}" />
+           -     P75 marker: <line class="histogram-p75-line" x1="{p75x}" y1="0" x2="{p75x}" y2="{chartHeight}" />
+           -     X-axis labels: <text class="histogram-axis-label" x="{x}" y="{labelY}">{value}{unit}</text>
+           -   </svg>
+           -   <div class="histogram-caption">{total} page loads &middot; {period}</div>
+           - </div>
+           SVG sizing: viewBox width = number of buckets * (barWidth + gap). Height ~120.
+           Bar height: normalized so tallest bucket fills chart height. barHeight = (count / maxCount) * chartHeight.
+           Bar color class: histogram-bar-good, histogram-bar-ni, or histogram-bar-poor based on bucket rating.
+           P75 line: vertical dashed line at the x position corresponding to the p75 value.
+           X-axis labels: show values at every 4th-5th bucket to avoid crowding.
+           If no histogram data was collected for this metric, leave this section empty (no placeholder text). -->
+      <!-- /SECTION:HISTOGRAM -->
       <div class="mc-footer">
         <span class="mc-pill">samples: 1,240</span>
         <span class="mc-pill trend-improving">trend: &#8600; 3.2%</span>
