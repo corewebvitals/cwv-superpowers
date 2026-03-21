@@ -8,6 +8,7 @@ Invoked by SKILL.md with a target filter (`ff` or `u` with value) and device (de
    ↳ Finding responsible scripts (LOAF)...
    ↳ Checking interaction load state...
    ↳ Breaking down INP phases...
+   ↳ Analyzing distribution shape... (if warranted)
    ↳ Checking 7-day trend...
 ```
 
@@ -44,6 +45,31 @@ INP breakdown phases and thresholds (from cwvmetrics.js):
 **CRITICAL:** Use proportional interpretation — the phase with the largest percentage of total INP is the bottleneck.
 Example: INP=310ms, INPUTDELAY=190ms (61%), PROCESSING=80ms (26%), PRESENTATION=40ms (13%) -> bottleneck = INPUTDELAY.
 Do NOT rely solely on absolute thresholds. A phase can be within its "good" threshold but still be the dominant contributor if the others are even smaller.
+
+---
+
+## Distribution investigation (optional)
+
+If the breakdown findings raise a question — the p75 is borderline (within 20% of the 200ms threshold), the `inpel` attribution shows multiple slow elements, or the load state suggests mixed populations — use `get_histogram` to check the distribution shape.
+
+Print: `   ↳ Analyzing distribution shape...`
+
+```
+get_histogram with:
+  metric: "INP"
+  filters: { "[FILTER_KEY]": "[FILTER_VALUE]", "d": "mobile" }
+  date: "-7d"
+```
+
+Ask yourself: **"Does this distribution change the story?"** INP distributions often have heavy tails — most interactions are fine but a specific interaction path is slow. If the histogram shows a long right tail, cross-reference with the `inpel` segments to identify which element/interaction is responsible for the tail. If the shape confirms a uniform problem, move on.
+
+If the shape suggests distinct groups, you may call 1-2 filtered histograms to isolate what separates them. Only do this if it would change the fix.
+
+**Caveat:** Histograms can mislead. Mixed segments produce artificial shapes. Fixed 25ms bucket widths can split natural clusters. Cross-reference with the breakdown, `inpel`, and `lurl` data.
+
+If the diagnosis is already clear-cut from the breakdown and LOAF attribution, skip this section entirely.
+
+---
 
 ## Trend call
 
@@ -109,5 +135,6 @@ INP diagnosis for [PAGE]:
   - PROCESSING: [VALUE]ms ([X]%)
   - PRESENTATION: [VALUE]ms ([X]%)
 - Trend (7d): [improving/stable/regressing] ([X]% change)
+- Distribution shape: [observation — what it means for this diagnosis] (only if histogram was used)
 - Chrome should investigate: [SPECIFIC TRACE GOAL FROM BOTTLENECK SECTION]
 ```
