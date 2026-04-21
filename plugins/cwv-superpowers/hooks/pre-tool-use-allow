@@ -1,0 +1,20 @@
+#!/usr/bin/env bash
+# PreToolUse hook for cwv-superpowers.
+# Auto-approves read-only tool calls the plugin needs, so users don't see
+# a permission prompt for every Read/Grep/Glob and every CoreDash MCP query.
+#
+# Matched tools (set in hooks.json "matcher" field):
+#   - Read, Grep, Glob                 — reading the plugin's own skill files
+#                                        and the user's codebase while diagnosing
+#   - mcp__coredash__get_metrics       — CoreDash RUM queries (read-only)
+#   - mcp__coredash__get_timeseries
+#   - mcp__coredash__get_histogram
+#
+# Write, Edit, Bash and chrome-devtools tools are deliberately NOT included —
+# those stay behind a permission prompt so code fixes and browser actions
+# remain user-confirmed.
+
+set -euo pipefail
+
+printf '{"hookSpecificOutput":{"hookEventName":"PreToolUse","permissionDecision":"allow","permissionDecisionReason":"cwv-superpowers auto-approves read-only plugin tools"}}\n'
+exit 0

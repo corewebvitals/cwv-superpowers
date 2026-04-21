@@ -1,7 +1,7 @@
 ---
 name: cwv-superpower
 description: Orchestrator for full Core Web Vitals diagnosis. Use when the user asks for a site audit, "find my biggest CWV issue", general page speed help, or multi-metric analysis. Dispatches to peer skills diagnosing-lcp, diagnosing-inp, diagnosing-cls, tracing-with-chrome, and setting-up-coredash. For a single named metric, the agent may invoke the matching diagnosing-* skill directly instead.
-version: 2.0.1
+version: 2.0.2
 allowed-tools: Read, Write, Edit, Glob, Grep                                                                                                                                              
 ---
 

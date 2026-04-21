@@ -1,7 +1,7 @@
 ---
 name: tracing-with-chrome
 description: Use when running a Chrome lab trace for a specific CWV bottleneck — investigating LCP/INP/CLS with browser tools after RUM has identified the target phase, element, and cause. Typically called by the cwv-superpower orchestrator at Step 3. Requires Chrome via chrome-devtools MCP.
-version: 2.0.1
+version: 2.0.2
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
