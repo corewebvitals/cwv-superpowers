@@ -1,6 +1,17 @@
-# INP Diagnosis Module
+---
+name: diagnosing-inp
+description: Use when diagnosing INP (Interaction to Next Paint) issues — slow/laggy clicks, delayed interactions, poor INP at p75, or when the cwv-superpower orchestrator dispatches at Step 2B. Identifies the slow interaction element, the bottleneck phase (INPUTDELAY/PROCESSING/PRESENTATION), and the responsible LOAF script. Requires CoreDash MCP.
+version: 2.0.0
+allowed-tools: Read, Write, Edit, Glob, Grep
+---
 
-Invoked by SKILL.md with a target filter (`ff` or `u` with value) and device (default: mobile).
+# Diagnosing INP
+
+## Invocation
+
+Called by the `cwv-superpower` orchestrator at Step 2B, or invoked directly when the user names INP as the target metric.
+
+**Inputs:** a target filter (`ff` or `u` with value) and a device (default: mobile).
 
 **Progress:** Print these `↳` sub-status lines as you execute each call:
 ```
@@ -118,6 +129,27 @@ The handler finished but the browser was slow to paint the result.
 
 **Chrome trace goals:**
 Look at rendering activity after the handler completes. Find "Recalculate Style", "Layout", and "Paint" blocks — measure their duration. Check DOM size (`document.querySelectorAll('*').length`). Look for non-composited animations. Check if `content-visibility: auto` could reduce layout scope.
+
+---
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| INP is 210ms — barely poor, skip it | 210ms at p75 is confirmed poor, not borderline. That's one in four interactions failing the threshold. Report it with the same urgency as 400ms. |
+| No LOAF data returned — can't blame a specific script | Long Animation Frames may not have fired; cross-reference the `inpel` selector with the page's event handlers and third-party scripts. Absence of LOAF is recoverable, not a dead end. |
+| Handler code is short, so it can't be processing-bound | Layout thrash inside a 20ms handler (reading `offsetHeight` in a loop, for example) can cost 200ms of forced reflow. Look for purple Layout bars in the trace, not just yellow Scripting. |
+| INP is only slow for users who interact early (`inpls: loading`) | That's a script-order bug, not a population bug. Move the blocking script, defer it, or attach the handler after load. Don't dismiss it as "some users." |
+| The breakdown shows PRESENTATION dominant — there's nothing to fix | PRESENTATION = rendering + paint after the handler returns. Non-composited animations, oversized DOM, missing `content-visibility` — all fixable. Keep digging. |
+| Third-party script so it's not our problem | Cross-origin scripts still run in your main thread. Async-loading, `requestIdleCallback` wrapping, or replacement are all your decisions to make. |
+
+## Red Flags
+
+- Recommending "debounce the handler" without measuring which phase (INPUTDELAY / PROCESSING / PRESENTATION) dominates.
+- Assuming the handler author can't change third-party code.
+- Naming a fix without confirming `inpel` (which element) and `inpls` (which load state).
+- Stopping at "DOM is large" without measuring the size and the layout duration.
+- Reporting INP in ms without reporting which phase owns the time.
 
 ## Summary format
 

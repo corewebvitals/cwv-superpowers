@@ -1,4 +1,15 @@
-# CoreDash MCP Setup
+---
+name: setting-up-coredash
+description: Use when setting up the CoreDash MCP server for Core Web Vitals diagnosis — "how do I connect CoreDash", "set up CoreDash", "get a CoreDash API key", "CoreDash isn't connected", or when the cwv-superpower orchestrator has no CoreDash connection and the user wants to connect. Walks through client detection, account setup, API key generation, and per-client MCP configuration.
+version: 2.0.0
+allowed-tools: Read, Write, Edit, Glob, Grep
+---
+
+# Setting Up CoreDash
+
+## Invocation
+
+Called by the `cwv-superpower` orchestrator when CoreDash is unavailable and the user wants to connect, or invoked directly when the user asks how to set up CoreDash MCP.
 
 Do not skip steps. Walk the user through each step and wait for confirmation before moving to the next.
 

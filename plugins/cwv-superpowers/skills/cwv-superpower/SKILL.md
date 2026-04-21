@@ -1,7 +1,7 @@
 ---
 name: cwv-superpower
-description: Diagnose and fix Core Web Vitals (LCP, INP, CLS) issues using CoreDash real user monitoring data and Chrome browser tools. Use when the user asks about web performance, page speed, slow pages, or Core Web Vitals.
-version: 1.3.0
+description: Orchestrator for full Core Web Vitals diagnosis. Use when the user asks for a site audit, "find my biggest CWV issue", general page speed help, or multi-metric analysis. Dispatches to peer skills diagnosing-lcp, diagnosing-inp, diagnosing-cls, tracing-with-chrome, and setting-up-coredash. For a single named metric, the agent may invoke the matching diagnosing-* skill directly instead.
+version: 2.0.0
 allowed-tools: Read, Write, Edit, Glob, Grep                                                                                                                                              
 ---
 
@@ -48,6 +48,8 @@ Run these checks silently at the start of every conversation. Do not print resul
 | No | No | **None** | "Point me at any page and I'll find what's slowing it down — I just need one data source. Connect CoreDash and I won't just analyze pages — I'll scan your entire site, surface the issues you didn't know you had, and prioritize the ones that matter most to real users: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` (key from https://app.coredash.app → Project Settings → API Keys). Or restart with `claude --chrome` and tell me which page to trace. With both connected, you get the complete superpower — I find the issues, explain exactly why they happen, and fix them." |
 
 After detection, print the result: `✅ CoreDash connected | ✅ Chrome available → Full tier` (or the appropriate variant with ⚠️ for unavailable capabilities).
+
+If the user accepts the CoreDash setup offer (from the **RUM only absent**, **Lab only**, or **None** tier), invoke the `setting-up-coredash` skill via the Skill tool instead of walking through inline commands.
 
 ---
 
@@ -131,17 +133,19 @@ Tell the user what you found in 2-3 sentences. Set the filter to `u` with the wo
 
 Print: `🔬 Step 2B: Deep [METRIC] diagnosis...`
 
-Based on the metric, read the appropriate diagnosis module:
+Based on the metric, invoke the appropriate peer skill via the Skill tool:
 
-- **LCP** — read `modules/lcp.md` and follow it.
-- **INP** — read `modules/inp.md` and follow it.
-- **CLS** — read `modules/cls.md` and follow it.
+- **LCP** — invoke the `diagnosing-lcp` skill.
+- **INP** — invoke the `diagnosing-inp` skill.
+- **CLS** — invoke the `diagnosing-cls` skill.
 
-Pass to the module: the **filter key** (`ff` or `u`), the **filter value**, and the **device**.
+Pass to the skill: the **filter key** (`ff` or `u`), the **filter value**, and the **device**.
 
-If multiple metrics are poor for the same page, diagnose in this order: **LCP first, then INP, then CLS.** Complete each module before starting the next.
+Do not use the Read tool on the peer skill's SKILL.md — always invoke via the Skill tool.
 
-### After the module returns
+If multiple metrics are poor for the same page, diagnose in this order: **LCP first, then INP, then CLS.** Complete each skill before starting the next.
+
+### After the skill returns
 
 Print `✅ Bottleneck: [PHASE] is [X]% of [METRIC] — [one-sentence explanation]`
 
@@ -163,17 +167,17 @@ Proceed to **Step 3**.
 
 Print: `🌐 Step 3: Chrome trace...`
 
-**If Chrome is not available:** Print `⚠️ Chrome not available — proceeding with RUM-only evidence`. Skip to **Step 4**. The diagnosis module findings from Step 2B are sufficient for a root cause statement and code fix.
+**If Chrome is not available:** Print `⚠️ Chrome not available — proceeding with RUM-only evidence`. Skip to **Step 4**. The Step 2B findings are sufficient for a root cause statement and code fix.
 
-**If Chrome is available:** Read `modules/chrome.md` and follow it.
+**If Chrome is available:** invoke the `tracing-with-chrome` skill via the Skill tool.
 
-Pass to the Chrome module:
+Pass to the skill:
 - **Target URL** — the page identified in Step 2A or 1B.
 - **Metric** — LCP, INP, or CLS.
-- **Bottleneck phase or cause pattern** — from the diagnosis module (e.g., "LOADDELAY", "INPUTDELAY", "font swap on new visitors").
+- **Bottleneck phase or cause pattern** — from Step 2B (e.g., "LOADDELAY", "INPUTDELAY", "font swap on new visitors").
 - **Element selector** — from CoreDash attribution.
 
-Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters. The Chrome module also collects data and screenshots for the report's visual evidence: network waterfall data (rendered as inline SVG), page filmstrip screenshots (captured via `browser_take_screenshot` at key load moments), and INP interaction timeline data when applicable.
+Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters. The skill also collects data and screenshots for the report's visual evidence: network waterfall data (rendered as inline SVG), page filmstrip screenshots (captured via `browser_take_screenshot` at key load moments), and INP interaction timeline data when applicable.
 
 Proceed to **Step 4**.
 

@@ -1,6 +1,18 @@
-# LCP Diagnosis Module
+---
+name: diagnosing-lcp
+description: Use when diagnosing LCP (Largest Contentful Paint) issues — slow hero images, slow page loads, poor Largest Contentful Paint at p75, or when the cwv-superpower orchestrator dispatches at Step 2B. Identifies the LCP element, the bottleneck phase (TTFB/LOADDELAY/LOADTIME/RENDERDELAY), and the cause pattern. Requires CoreDash MCP.
+version: 2.0.0
+allowed-tools: Read, Write, Edit, Glob, Grep
+---
 
-Invoked by SKILL.md with a target filter (`ff` or `u` with value) and device (default: mobile).
+# Diagnosing LCP
+
+## Invocation
+
+Called by the `cwv-superpower` orchestrator at Step 2B, or invoked directly when the user names LCP as the target metric.
+
+**Inputs:** a target filter (`ff` or `u` with value) and a device (default: mobile).
+
 Run the attribution, breakdown, and trend calls below, then interpret results.
 
 **Progress:** Print these `↳` sub-status lines as you execute each call:
@@ -214,6 +226,27 @@ Check the `summary.trend` field in the response to determine if LCP is improving
 - Look for JS-driven visibility changes (`display`, `visibility`, `opacity`) on the LCP element
 - Check the "Rendering" tab for forced style recalculations or layout thrashing
 - For text LCP: check font loading in Network and whether `font-display: swap` or `optional` is used
+
+---
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| TTFB is only 700ms so it's not the bottleneck | Proportional share matters, not absolute. 700ms at 58% of 1200ms LCP IS the bottleneck. Report the dominant phase regardless of whether its absolute value is "good." |
+| `lcpel` selector didn't match — skip attribution | Fall back to `lcpet` (element type) and `lcpprio` (fetch priority). Don't give up. Selectors break on minified markup; type + priority still identify the element class. |
+| Chrome-measured LCP doesn't match RUM LCP | Expected. Chrome shows structure, not user timing. Don't recalibrate RUM findings to Chrome — RUM is truth for the p75 you're fixing. |
+| LCP p75 is 2400ms so it passes Core Web Vitals — move on | Check the tail. A passing p75 with 18% poor loads is failing for one user in six. Pull `get_histogram` and report the poor-bucket share. |
+| Priority 3 (not preloaded) isn't a real issue | Priority 3 on the LCP image is the single most common fixable LCP issue. `fetchpriority="high"` or a `<link rel="preload">` typically removes 200–600ms of LOADDELAY. |
+| Largest phase is only 45% — not really a bottleneck | 45% of LCP is still the phase to fix first. Proportional share is the tiebreaker; do not require >50%. |
+
+## Red Flags
+
+- Explaining LCP in absolute thresholds ("700ms is fine") instead of phase percentages.
+- Recommending "optimize the image" without identifying which phase (LOADDELAY vs LOADTIME) dominates.
+- Concluding "can't fix TTFB" without checking redirect chains, server timing headers, or CDN edge placement.
+- Skipping the histogram check because the p75 passes.
+- Naming a generic fix ("preload your LCP") without confirming the element, its current priority, and its discovery path.
 
 ---
 

@@ -1,0 +1,23 @@
+{
+  "files": [
+    { "path": ".claude-plugin/marketplace.json", "field": "plugins.0.version" },
+    { "path": ".cursor-plugin/plugin.json", "field": "version" },
+    { "path": "gemini-extension.json", "field": "version" },
+    { "path": "plugins/cwv-superpowers/.claude-plugin/plugin.json", "field": "version" },
+    { "path": "plugins/cwv-superpowers/skills/cwv-superpower/SKILL.md", "field": "version", "format": "yaml-frontmatter" },
+    { "path": "plugins/cwv-superpowers/skills/diagnosing-lcp/SKILL.md", "field": "version", "format": "yaml-frontmatter" },
+    { "path": "plugins/cwv-superpowers/skills/diagnosing-inp/SKILL.md", "field": "version", "format": "yaml-frontmatter" },
+    { "path": "plugins/cwv-superpowers/skills/diagnosing-cls/SKILL.md", "field": "version", "format": "yaml-frontmatter" },
+    { "path": "plugins/cwv-superpowers/skills/tracing-with-chrome/SKILL.md", "field": "version", "format": "yaml-frontmatter" },
+    { "path": "plugins/cwv-superpowers/skills/setting-up-coredash/SKILL.md", "field": "version", "format": "yaml-frontmatter" }
+  ],
+  "audit": {
+    "exclude": [
+      ".git",
+      "node_modules",
+      ".version-bump.json",
+      "scripts/bump-version.sh",
+      "README.md"
+    ]
+  }
+}

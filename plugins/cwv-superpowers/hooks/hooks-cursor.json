@@ -1,0 +1,10 @@
+{
+  "version": 1,
+  "hooks": {
+    "sessionStart": [
+      {
+        "command": "./plugins/cwv-superpowers/hooks/session-start"
+      }
+    ]
+  }
+}

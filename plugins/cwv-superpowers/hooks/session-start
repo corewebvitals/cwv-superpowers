@@ -1,0 +1,63 @@
+#!/usr/bin/env bash
+# SessionStart hook for cwv-superpowers plugin.
+#
+# Injects a short preamble reminding the agent that the cwv-superpower skill
+# exists and that capability-tier detection (Chrome + CoreDash MCP) is
+# mandatory before diagnosis. Does NOT probe MCP/Chrome from bash — the
+# skill's Step 0 runs the real probe in-conversation where it has tool
+# introspection.
+#
+# Output format is selected per harness (Claude Code / Cursor / Copilot CLI).
+
+set -euo pipefail
+
+preamble='<CWV-SUPERPOWERS-PREAMBLE>
+The cwv-superpower skill is installed. Invoke it via the Skill tool — do not Read its SKILL.md file directly.
+
+When the user asks about Core Web Vitals, web performance, page speed, LCP, INP, CLS, FCP, TTFB, slow pages, or a site audit, invoke the Skill tool with skill name "cwv-superpower".
+
+At Step 0 the skill requires capability-tier detection:
+- CoreDash MCP: attempt a minimal get_metrics call; success = connected.
+- Chrome: check for chrome-devtools MCP tools (e.g. list_pages, navigate_page).
+Route to one of four tiers:
+- Full     — both available   — RUM diagnosis + Chrome trace
+- RUM      — CoreDash only    — RUM diagnosis, no lab visuals
+- Lab      — Chrome only      — user picks URL, lab-only trace
+- Setup    — neither          — invoke setup wizard
+
+Never claim a capability is missing without running the probe.
+</CWV-SUPERPOWERS-PREAMBLE>'
+
+# Escape string for JSON embedding using bash parameter substitution.
+# Each ${s//old/new} is a single C-level pass.
+escape_for_json() {
+    local s="$1"
+    s="${s//\\/\\\\}"
+    s="${s//\"/\\\"}"
+    s="${s//$'\n'/\\n}"
+    s="${s//$'\r'/\\r}"
+    s="${s//$'\t'/\\t}"
+    printf '%s' "$s"
+}
+
+context=$(escape_for_json "$preamble")
+
+# Emit the right output shape per harness.
+# Claude Code:  hookSpecificOutput.additionalContext
+# Cursor:       additional_context (snake_case)
+# Copilot CLI:  additionalContext  (top-level, SDK standard)
+#
+# Claude Code reads both additional_context and hookSpecificOutput without
+# dedup, so we emit only one field per harness.
+#
+# Uses printf instead of heredoc to avoid bash 5.3+ heredoc hang.
+# See: https://github.com/obra/superpowers/issues/571
+if [ -n "${CURSOR_PLUGIN_ROOT:-}" ]; then
+  printf '{\n  "additional_context": "%s"\n}\n' "$context"
+elif [ -n "${CLAUDE_PLUGIN_ROOT:-}" ] && [ -z "${COPILOT_CLI:-}" ]; then
+  printf '{\n  "hookSpecificOutput": {\n    "hookEventName": "SessionStart",\n    "additionalContext": "%s"\n  }\n}\n' "$context"
+else
+  printf '{\n  "additionalContext": "%s"\n}\n' "$context"
+fi
+
+exit 0

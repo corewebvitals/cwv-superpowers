@@ -59,7 +59,7 @@ The CoreDash MCP server works with any client that supports HTTP MCP servers:
 | Endpoint | `https://app.coredash.app/api/mcp` |
 | Header | `Authorization: Bearer cdk_YOUR_API_KEY` |
 
-See `plugins/cwv-superpowers/skills/cwv-superpower/modules/setup.md` for detailed setup instructions per client (Claude Desktop, Windsurf, Gemini CLI).
+Ask the agent to "set up CoreDash" — the `setting-up-coredash` skill walks through detailed per-client setup (Claude Desktop, Windsurf, Gemini CLI, etc.). Source: `plugins/cwv-superpowers/skills/setting-up-coredash/SKILL.md`.
 
 ### Verify installation
 
@@ -117,22 +117,32 @@ The skill handles capability detection automatically. It works with:
 
 ## Skill Structure
 
+Six peer skills: one orchestrator + five specialist skills. The orchestrator runs the full multi-step flow; the specialists can also be invoked directly.
+
 ```
 plugins/cwv-superpowers/
 ├── .claude-plugin/
-│   └── plugin.json       ← Plugin metadata
-└── skills/cwv-superpower/
-    ├── SKILL.md           ← Main orchestrator (start here)
-    ├── modules/
-    │   ├── setup.md       ← CoreDash MCP installation guide
-    │   ├── lcp.md         ← LCP diagnosis (phases + attribution)
-    │   ├── inp.md         ← INP diagnosis (phases + LOAF scripts)
-    │   ├── cls.md         ← CLS diagnosis (cause pattern matching)
-    │   └── chrome.md      ← Chrome tracing (per-phase investigation)
-    └── templates/
-        ├── report-rum.html  ← RUM-only report template
-        └── report-full.html ← Full report (filmstrip, waterfall, tabs)
+│   └── plugin.json              ← Plugin metadata
+├── hooks/                        ← SessionStart hook (capability-tier preamble)
+└── skills/
+    ├── cwv-superpower/           ← Orchestrator (Step 0–5 flow)
+    │   ├── SKILL.md
+    │   └── templates/
+    │       ├── report-rum.html   ← RUM-only report template
+    │       └── report-full.html  ← Full report (filmstrip, waterfall, tabs)
+    ├── diagnosing-lcp/SKILL.md   ← LCP diagnosis (phases + attribution)
+    ├── diagnosing-inp/SKILL.md   ← INP diagnosis (phases + LOAF scripts)
+    ├── diagnosing-cls/SKILL.md   ← CLS diagnosis (cause pattern matching)
+    ├── tracing-with-chrome/SKILL.md ← Chrome tracing (per-phase investigation)
+    └── setting-up-coredash/SKILL.md ← CoreDash MCP installation guide
 ```
+
+**When each skill activates:**
+
+- `cwv-superpower` — "find my biggest CWV issue", "audit this site", multi-metric analysis.
+- `diagnosing-lcp` / `diagnosing-inp` / `diagnosing-cls` — the user names one specific metric.
+- `tracing-with-chrome` — the user has a URL + metric + suspected cause and wants a lab trace.
+- `setting-up-coredash` — connecting CoreDash MCP from scratch.
 
 ## Example Output
 

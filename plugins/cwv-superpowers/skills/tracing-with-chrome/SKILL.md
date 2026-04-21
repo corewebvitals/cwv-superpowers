@@ -1,3 +1,26 @@
+---
+name: tracing-with-chrome
+description: Use when running a Chrome lab trace for a specific CWV bottleneck — investigating LCP/INP/CLS with browser tools after RUM has identified the target phase, element, and cause. Typically called by the cwv-superpower orchestrator at Step 3. Requires Chrome via chrome-devtools MCP.
+version: 2.0.0
+allowed-tools: Read, Write, Edit, Glob, Grep
+---
+
+# Tracing with Chrome
+
+## Invocation
+
+Called by the `cwv-superpower` orchestrator at Step 3, or invoked directly when the user has a specific URL, metric, and suspected bottleneck to investigate.
+
+**Inputs:**
+- **Target URL** — the page to trace.
+- **Metric** — LCP, INP, or CLS.
+- **Bottleneck phase or cause pattern** — from the diagnosis skill (e.g., "LOADDELAY", "INPUTDELAY", "font swap on new visitors"). Drives what to look for.
+- **Element selector** — from CoreDash attribution (if available).
+
+Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters. The trace also collects visual evidence for the report: network waterfall, page filmstrip, INP interaction timeline.
+
+---
+
 ## Core Rules
 Three non-negotiable rules:
 

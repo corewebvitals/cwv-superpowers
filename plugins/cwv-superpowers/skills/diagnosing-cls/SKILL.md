@@ -1,8 +1,19 @@
-# CLS Diagnosis Module
+---
+name: diagnosing-cls
+description: Use when diagnosing CLS (Cumulative Layout Shift) issues — visual layout jumps, content shifting during load, poor CLS at p75, or when the cwv-superpower orchestrator dispatches at Step 2B. Matches the shifting element to one of 5 cause patterns (images without dimensions, FOUT, injected content, late-loading resources, non-composited animations). Requires CoreDash MCP.
+version: 2.0.0
+allowed-tools: Read, Write, Edit, Glob, Grep
+---
+
+# Diagnosing CLS
 
 CLS has no phase breakdown — `BREAKDOWN.CLS` is `["CLS"]`. Diagnosis works by identifying the shifting element and matching it to a cause pattern through cross-dimensional analysis (device type, visitor type, network speed).
 
-This module is invoked by SKILL.md with a target filter (`ff` or `u` with value) and device (default: mobile).
+## Invocation
+
+Called by the `cwv-superpower` orchestrator at Step 2B, or invoked directly when the user names CLS as the target metric.
+
+**Inputs:** a target filter (`ff` or `u` with value) and a device (default: mobile).
 
 **Progress:** Print these `↳` sub-status lines as you execute each call:
 ```
@@ -161,6 +172,27 @@ Walk through these patterns in order. Stop at the first match. Each pattern defi
 **Chrome trace goals:** Check the Animations panel for non-composited animations. Look for repeated layout recalculations occurring during animation frames in the Performance timeline.
 
 **Fix pattern:** Replace layout-triggering animations with `transform` (`translate` for position, `scale` for size) and `opacity`. These properties are composited on the GPU and do not cause layout shifts.
+
+---
+
+## Common Rationalizations
+
+| Excuse | Reality |
+|--------|---------|
+| CLS is 0.11 — basically fine | The threshold is 0.1. 0.11 at p75 is poor. The histogram tail rule applies to CLS too — check the poor-bucket share before moving on. |
+| Can't find `clsel` element in the DOM | Selectors may be minified or generated. Fuzzy-match by position, role, or type. Two-step matching (exact → fallback) is mandatory; don't stop at step one. |
+| `fv` (new vs repeat) gap is only 15% — not a font/cache issue | Only skip Pattern 2 (FOUT) if the gap is under ~10%. 15% is still enough evidence to investigate font loading. |
+| Animations use `transform` so they can't cause shift | Check elsewhere for `width`, `height`, `margin`, `padding`, or `top/left` animations. One handler per pattern — walk all five before concluding. |
+| Only a few pages are affected — low priority | CLS compounds across a session; one shifty page taints the site-wide p75. Use `ff` to find the offending template, not the count. |
+| CLS is hard to reproduce in Chrome | Expected. CLS depends on network timing, font latency, and third-party ad loads that Chrome's lab conditions don't replicate. Trust RUM `clsel` data over local repro. |
+
+## Red Flags
+
+- Concluding "it's a structural template issue" without walking the 5 patterns in order.
+- Stopping at the first signal that matches weakly instead of checking all five.
+- Recommending "set image dimensions" without confirming the shifting element is an image.
+- Ignoring the `fv` split because the gap "looks small."
+- Reporting CLS as a single number without naming the pattern and the element.
 
 ---
 
