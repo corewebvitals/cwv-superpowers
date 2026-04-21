@@ -32,7 +32,7 @@ Core Web Vitals diagnosis and fixing skills for AI coding agents — powered by 
 /plugin marketplace add corewebvitals/cwv-superpowers
 
 # Install the plugin
-/plugin install cwv-superpowers@cwv-superpower
+/plugin install cwv-superpowers@cwv-superpowers
 ```
 
 Then set up CoreDash MCP if you haven't already:
@@ -44,10 +44,18 @@ claude mcp add --transport http coredash https://app.coredash.app/api/mcp \
 
 Replace `cdk_YOUR_API_KEY` with your key from CoreDash → Project Settings → API Keys (MCP).
 
+Restart Claude Code after installing so the SessionStart hook fires on a fresh conversation.
+
 ### Cursor
 
-```
-/plugin-add cwv-superpowers
+The repo ships a Cursor plugin manifest at `.cursor-plugin/plugin.json` pointing at the same skill set. Install via Cursor's plugin UI from the GitHub repo URL.
+
+### Gemini CLI
+
+The repo ships a Gemini extension at `gemini-extension.json` with `GEMINI.md` auto-loading the orchestrator skill. Install via:
+
+```bash
+gemini extensions install https://github.com/corewebvitals/cwv-superpowers
 ```
 
 ### Other MCP-compatible clients
@@ -59,13 +67,17 @@ The CoreDash MCP server works with any client that supports HTTP MCP servers:
 | Endpoint | `https://app.coredash.app/api/mcp` |
 | Header | `Authorization: Bearer cdk_YOUR_API_KEY` |
 
-Ask the agent to "set up CoreDash" — the `setting-up-coredash` skill walks through detailed per-client setup (Claude Desktop, Windsurf, Gemini CLI, etc.). Source: `plugins/cwv-superpowers/skills/setting-up-coredash/SKILL.md`.
+Ask the agent to "set up CoreDash" — the `setting-up-coredash` skill walks through detailed per-client setup (Claude Desktop, Windsurf, Gemini CLI, etc.).
 
 ### Verify installation
 
 Ask your agent: **"What are my Core Web Vitals?"**
 
 If CoreDash is connected, it will return your real LCP, INP, CLS, FCP, and TTFB data.
+
+### Permission prompts
+
+From v2.0.2 the plugin auto-approves the read-only tools it needs (`Read`, `Grep`, `Glob`, and the 3 CoreDash MCP queries) via a `PreToolUse` hook, so diagnostic runs don't flood you with prompts. Write/Edit/Bash (code fixes) and all Chrome DevTools tools (navigation, script eval) stay behind permission prompts by design.
 
 ## Usage
 
@@ -120,21 +132,31 @@ The skill handles capability detection automatically. It works with:
 Six peer skills: one orchestrator + five specialist skills. The orchestrator runs the full multi-step flow; the specialists can also be invoked directly.
 
 ```
-plugins/cwv-superpowers/
-├── .claude-plugin/
-│   └── plugin.json              ← Plugin metadata
-├── hooks/                        ← SessionStart hook (capability-tier preamble)
-└── skills/
-    ├── cwv-superpower/           ← Orchestrator (Step 0–5 flow)
-    │   ├── SKILL.md
-    │   └── templates/
-    │       ├── report-rum.html   ← RUM-only report template
-    │       └── report-full.html  ← Full report (filmstrip, waterfall, tabs)
-    ├── diagnosing-lcp/SKILL.md   ← LCP diagnosis (phases + attribution)
-    ├── diagnosing-inp/SKILL.md   ← INP diagnosis (phases + LOAF scripts)
-    ├── diagnosing-cls/SKILL.md   ← CLS diagnosis (cause pattern matching)
-    ├── tracing-with-chrome/SKILL.md ← Chrome tracing (per-phase investigation)
-    └── setting-up-coredash/SKILL.md ← CoreDash MCP installation guide
+cwv-superpowers/                        ← Repo root (git repo)
+├── .claude-plugin/marketplace.json     ← Claude Code marketplace listing
+├── .cursor-plugin/plugin.json          ← Cursor manifest
+├── gemini-extension.json               ← Gemini CLI extension manifest
+├── GEMINI.md                           ← Gemini auto-loaded context
+├── .version-bump.json                  ← Single source of truth for version
+├── scripts/bump-version.sh             ← Keeps all 10 version fields in sync
+└── plugins/cwv-superpowers/
+    ├── .claude-plugin/plugin.json      ← Claude Code plugin metadata
+    ├── hooks/
+    │   ├── hooks.json                  ← SessionStart + PreToolUse hook config
+    │   ├── hooks-cursor.json           ← Cursor hook config
+    │   ├── session-start               ← Injects capability-tier preamble
+    │   └── pre-tool-use-allow          ← Auto-approves read-only tools
+    └── skills/
+        ├── cwv-superpower/             ← Orchestrator (Step 0–5 flow)
+        │   ├── SKILL.md
+        │   └── templates/
+        │       ├── report-rum.html     ← RUM-only report template
+        │       └── report-full.html    ← Full report (filmstrip, waterfall)
+        ├── diagnosing-lcp/SKILL.md     ← LCP diagnosis (phases + attribution)
+        ├── diagnosing-inp/SKILL.md     ← INP diagnosis (phases + LOAF scripts)
+        ├── diagnosing-cls/SKILL.md     ← CLS diagnosis (cause pattern matching)
+        ├── tracing-with-chrome/SKILL.md ← Chrome tracing (per-phase investigation)
+        └── setting-up-coredash/SKILL.md ← CoreDash MCP installation guide
 ```
 
 **When each skill activates:**
@@ -167,12 +189,27 @@ plugins/cwv-superpowers/
 ## Updating
 
 ```bash
-/plugin update cwv-superpowers
+/plugin marketplace update cwv-superpowers
+/plugin install cwv-superpowers@cwv-superpowers
 ```
+
+Restart Claude Code after updating.
 
 ## Contributing
 
 Issues and PRs welcome at [github.com/corewebvitals/cwv-superpowers](https://github.com/corewebvitals/cwv-superpowers).
+
+### For maintainers
+
+Versions across all 10 manifests (Claude Code, Cursor, Gemini CLI, plugin.json, and all 6 SKILL.md files) are kept in sync via one script:
+
+```bash
+./scripts/bump-version.sh --check      # show current versions + detect drift
+./scripts/bump-version.sh --audit      # check + scan repo for stray version strings
+./scripts/bump-version.sh 2.1.0        # bump every declared file to 2.1.0
+```
+
+The declared file list lives in `.version-bump.json`. To add a new version-bearing file, add its path + JSON field (or `"format": "yaml-frontmatter"` for SKILL.md frontmatter).
 
 ## License
 
