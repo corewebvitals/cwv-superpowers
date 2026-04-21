@@ -1,7 +1,7 @@
 ---
 name: diagnosing-inp
 description: Use when diagnosing INP (Interaction to Next Paint) issues — slow/laggy clicks, delayed interactions, poor INP at p75, or when the cwv-superpower orchestrator dispatches at Step 2B. Identifies the slow interaction element, the bottleneck phase (INPUTDELAY/PROCESSING/PRESENTATION), and the responsible LOAF script. Requires CoreDash MCP.
-version: 2.0.0
+version: 2.0.1
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 

@@ -2,7 +2,7 @@
   "name": "cwv-superpowers",
   "displayName": "CWV Superpowers",
   "description": "Core Web Vitals diagnosis and fixing skills — powered by CoreDash real user monitoring",
-  "version": "2.0.0",
+  "version": "2.0.1",
   "author": {
     "name": "CoreWebVitals",
     "url": "https://coredash.app"

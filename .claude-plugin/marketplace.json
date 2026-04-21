@@ -1,6 +1,6 @@
 {
   "$schema": "https://anthropic.com/claude-code/marketplace.schema.json",
-  "name": "cwv-superpower",
+  "name": "cwv-superpowers",
   "description": "Core Web Vitals superpowers for Claude Code",
   "owner": {
     "name": "CoreWebVitals",
@@ -10,7 +10,7 @@
     {
       "name": "cwv-superpowers",
       "description": "Core Web Vitals diagnosis and fixing skills for Claude Code — powered by CoreDash real user monitoring",
-      "version": "2.0.0",
+      "version": "2.0.1",
       "source": "./plugins/cwv-superpowers",
       "category": "development",
       "homepage": "https://github.com/corewebvitals/cwv-superpowers"
