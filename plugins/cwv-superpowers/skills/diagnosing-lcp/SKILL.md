@@ -1,7 +1,7 @@
 ---
 name: diagnosing-lcp
 description: Use when diagnosing LCP (Largest Contentful Paint) issues — slow hero images, slow page loads, poor Largest Contentful Paint at p75, or when the cwv-superpower orchestrator dispatches at Step 2B. Identifies the LCP element, the bottleneck phase (TTFB/LOADDELAY/LOADTIME/RENDERDELAY), and the cause pattern. Requires CoreDash MCP.
-version: 2.0.2
+version: 2.1.0
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 

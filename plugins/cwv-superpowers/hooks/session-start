@@ -1,32 +1,43 @@
 #!/usr/bin/env bash
 # SessionStart hook for cwv-superpowers plugin.
 #
-# Injects a short preamble reminding the agent that the cwv-superpower skill
-# exists and that capability-tier detection (Chrome + CoreDash MCP) is
-# mandatory before diagnosis. Does NOT probe MCP/Chrome from bash — the
-# skill's Step 0 runs the real probe in-conversation where it has tool
-# introspection.
+# Inlines the cwv-superpower orchestrator SKILL.md into the session as
+# additionalContext, so the agent has the full Step 0–5 flow without
+# needing to Read it (which would surface a permission prompt). Peer
+# skills (diagnosing-lcp/inp/cls, tracing-with-chrome, setting-up-coredash)
+# remain accessed via the Skill tool, which the harness loads internally.
 #
 # Output format is selected per harness (Claude Code / Cursor / Copilot CLI).
 
 set -euo pipefail
 
-preamble='<CWV-SUPERPOWERS-PREAMBLE>
-The cwv-superpower skill is installed. Invoke it via the Skill tool — do not Read its SKILL.md file directly.
+# Resolve plugin root. Harnesses set CLAUDE_PLUGIN_ROOT or CURSOR_PLUGIN_ROOT;
+# fall back to the script's own location (script lives at <root>/hooks/session-start).
+SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+PLUGIN_ROOT="${CLAUDE_PLUGIN_ROOT:-${CURSOR_PLUGIN_ROOT:-$(dirname "$SCRIPT_DIR")}}"
 
-When the user asks about Core Web Vitals, web performance, page speed, LCP, INP, CLS, FCP, TTFB, slow pages, or a site audit, invoke the Skill tool with skill name "cwv-superpower".
+SKILL_FILE="${PLUGIN_ROOT}/skills/cwv-superpower/SKILL.md"
 
-At Step 0 the skill requires capability-tier detection:
-- CoreDash MCP: attempt a minimal get_metrics call; success = connected.
-- Chrome: check for chrome-devtools MCP tools (e.g. list_pages, navigate_page).
-Route to one of four tiers:
-- Full     — both available   — RUM diagnosis + Chrome trace
-- RUM      — CoreDash only    — RUM diagnosis, no lab visuals
-- Lab      — Chrome only      — user picks URL, lab-only trace
-- Setup    — neither          — invoke setup wizard
+if [ ! -f "$SKILL_FILE" ]; then
+  # Skill file missing — emit empty context rather than failing the session.
+  printf '{}\n'
+  exit 0
+fi
 
-Never claim a capability is missing without running the probe.
-</CWV-SUPERPOWERS-PREAMBLE>'
+skill_body="$(cat "$SKILL_FILE")"
+
+banner_open='<EXTREMELY_IMPORTANT>
+You have CWV superpowers.
+
+Below is the full content of your '"'"'cwv-superpowers:cwv-superpower'"'"' orchestrator skill. For the peer skills (diagnosing-lcp, diagnosing-inp, diagnosing-cls, tracing-with-chrome, setting-up-coredash), use the '"'"'Skill'"'"' tool.
+
+---
+'
+banner_close='
+---
+</EXTREMELY_IMPORTANT>'
+
+content="${banner_open}${skill_body}${banner_close}"
 
 # Escape string for JSON embedding using bash parameter substitution.
 # Each ${s//old/new} is a single C-level pass.
@@ -40,7 +51,7 @@ escape_for_json() {
     printf '%s' "$s"
 }
 
-context=$(escape_for_json "$preamble")
+context=$(escape_for_json "$content")
 
 # Emit the right output shape per harness.
 # Claude Code:  hookSpecificOutput.additionalContext

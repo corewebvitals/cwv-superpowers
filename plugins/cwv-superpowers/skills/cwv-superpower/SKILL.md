@@ -1,7 +1,7 @@
 ---
 name: cwv-superpower
 description: Orchestrator for full Core Web Vitals diagnosis. Use when the user asks for a site audit, "find my biggest CWV issue", general page speed help, or multi-metric analysis. Dispatches to peer skills diagnosing-lcp, diagnosing-inp, diagnosing-cls, tracing-with-chrome, and setting-up-coredash. For a single named metric, the agent may invoke the matching diagnosing-* skill directly instead.
-version: 2.0.2
+version: 2.1.0
 allowed-tools: Read, Write, Edit, Glob, Grep                                                                                                                                              
 ---
 
@@ -34,7 +34,7 @@ Print: `🔍 Step 0: Checking capabilities...`
 
 Run these checks silently at the start of every conversation. Do not print results — just route to the correct tier.
 
-**Check 1 — Chrome:** Verify that browser tools (navigate, screenshot, JavaScript execution) are available.
+**Check 1 — Chrome:** Probe in priority order. (a) Look for chrome-devtools-mcp tools (e.g. `performance_start_trace` on MCP server `chrome-devtools`). If found → Chrome present, Path A. (b) Else look for claude-in-chrome tools (e.g. `javascript_tool` and `navigate` on MCP server `claude-in-chrome`). If found → Chrome present, Path B (fallback — `tracing-with-chrome` will print a degradation warning). (c) Else → Chrome absent.
 
 **Check 2 — CoreDash MCP:** Call `get_metrics` with no arguments. If it returns data, CoreDash is connected. If it errors or is not found, CoreDash is unavailable.
 
@@ -48,6 +48,8 @@ Run these checks silently at the start of every conversation. Do not print resul
 | No | No | **None** | "Point me at any page and I'll find what's slowing it down — I just need one data source. Connect CoreDash and I won't just analyze pages — I'll scan your entire site, surface the issues you didn't know you had, and prioritize the ones that matter most to real users: `claude mcp add --transport http coredash https://app.coredash.app/api/mcp --header \"Authorization: Bearer cdk_YOUR_API_KEY\"` (key from https://app.coredash.app → Project Settings → API Keys). Or restart with `claude --chrome` and tell me which page to trace. With both connected, you get the complete superpower — I find the issues, explain exactly why they happen, and fix them." |
 
 After detection, print the result: `✅ CoreDash connected | ✅ Chrome available → Full tier` (or the appropriate variant with ⚠️ for unavailable capabilities).
+
+> Chrome tier is satisfied by either chrome-devtools-mcp (preferred — native trace primitives) or claude-in-chrome (fallback — JS-based timing). Bottleneck identification works in both; chrome-devtools-mcp gives more precise phase breakdowns and supports CPU/network throttling.
 
 If the user accepts the CoreDash setup offer (from the **RUM only absent**, **Lab only**, or **None** tier), invoke the `setting-up-coredash` skill via the Skill tool instead of walking through inline commands.
 
@@ -177,7 +179,7 @@ Pass to the skill:
 - **Bottleneck phase or cause pattern** — from Step 2B (e.g., "LOADDELAY", "INPUTDELAY", "font swap on new visitors").
 - **Element selector** — from CoreDash attribution.
 
-Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters. The skill also collects data and screenshots for the report's visual evidence: network waterfall data (rendered as inline SVG), page filmstrip screenshots (captured via `browser_take_screenshot` at key load moments), and INP interaction timeline data when applicable.
+Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters. The skill also collects data and screenshots for the report's visual evidence: network waterfall data (rendered as inline SVG), page filmstrip screenshots (captured via the trace skill's chosen path at key load moments), and INP interaction timeline data when applicable.
 
 Proceed to **Step 4**.
 

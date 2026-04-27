@@ -77,7 +77,7 @@ If CoreDash is connected, it will return your real LCP, INP, CLS, FCP, and TTFB 
 
 ### Permission prompts
 
-From v2.0.2 the plugin auto-approves the read-only tools it needs (`Read`, `Grep`, `Glob`, and the 3 CoreDash MCP queries) via a `PreToolUse` hook, so diagnostic runs don't flood you with prompts. Write/Edit/Bash (code fixes) and all Chrome DevTools tools (navigation, script eval) stay behind permission prompts by design.
+The orchestrator skill is inlined into the session by a `SessionStart` hook, so the agent doesn't need to `Read` it (which would prompt). Peer skills are loaded internally via the `Skill` tool, also without a prompt. CoreDash MCP queries, `Write`/`Edit`/`Bash` (code fixes), and Chrome DevTools tools stay behind permission prompts by design — approve them once and they're remembered for the session.
 
 ## Usage
 
@@ -142,10 +142,9 @@ cwv-superpowers/                        ← Repo root (git repo)
 └── plugins/cwv-superpowers/
     ├── .claude-plugin/plugin.json      ← Claude Code plugin metadata
     ├── hooks/
-    │   ├── hooks.json                  ← SessionStart + PreToolUse hook config
+    │   ├── hooks.json                  ← SessionStart hook config
     │   ├── hooks-cursor.json           ← Cursor hook config
-    │   ├── session-start               ← Injects capability-tier preamble
-    │   └── pre-tool-use-allow          ← Auto-approves read-only tools
+    │   └── session-start               ← Inlines orchestrator SKILL.md into context
     └── skills/
         ├── cwv-superpower/             ← Orchestrator (Step 0–5 flow)
         │   ├── SKILL.md

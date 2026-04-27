@@ -1,7 +1,7 @@
 ---
 name: diagnosing-cls
 description: Use when diagnosing CLS (Cumulative Layout Shift) issues — visual layout jumps, content shifting during load, poor CLS at p75, or when the cwv-superpower orchestrator dispatches at Step 2B. Matches the shifting element to one of 5 cause patterns (images without dimensions, FOUT, injected content, late-loading resources, non-composited animations). Requires CoreDash MCP.
-version: 2.0.2
+version: 2.1.0
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 

@@ -1,7 +1,7 @@
 {
   "name": "cwv-superpowers",
   "description": "Core Web Vitals diagnosis and fixing skills for Claude Code — powered by CoreDash real user monitoring",
-  "version": "2.0.2",
+  "version": "2.1.0",
   "author": {
     "name": "CoreWebVitals",
     "url": "https://coredash.app"

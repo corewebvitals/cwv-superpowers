@@ -1,7 +1,7 @@
 ---
 name: tracing-with-chrome
-description: Use when running a Chrome lab trace for a specific CWV bottleneck — investigating LCP/INP/CLS with browser tools after RUM has identified the target phase, element, and cause. Typically called by the cwv-superpower orchestrator at Step 3. Requires Chrome via chrome-devtools MCP.
-version: 2.0.2
+description: Use when running a Chrome lab trace for a specific CWV bottleneck — investigating LCP/INP/CLS with browser tools after RUM has identified the target phase, element, and cause. Typically called by the cwv-superpower orchestrator at Step 3. Requires either chrome-devtools-mcp (preferred) or claude-in-chrome (fallback).
+version: 2.1.0
 allowed-tools: Read, Write, Edit, Glob, Grep
 ---
 
@@ -18,6 +18,36 @@ Called by the `cwv-superpower` orchestrator at Step 3, or invoked directly when 
 - **Element selector** — from CoreDash attribution (if available).
 
 Chrome investigates the specific bottleneck phase identified by RUM. Not all phases — just the one that matters. The trace also collects visual evidence for the report: network waterfall, page filmstrip, INP interaction timeline.
+
+---
+
+## Prerequisites
+
+This skill needs a Chrome browser MCP. Two are supported:
+
+- **chrome-devtools-mcp** (preferred — native trace primitives plus CPU/network throttling):
+  ```
+  claude mcp add chrome-devtools npx chrome-devtools-mcp@latest
+  ```
+- **claude-in-chrome** (fallback — uses `claude --chrome`; JS-based timing, no native throttling).
+
+If neither is available, the orchestrator skips this skill and reports RUM-only findings.
+
+---
+
+## Tool Routing
+
+Pick ONE path at the start of the trace based on which Chrome MCP is connected. Do not switch mid-trace. Do not free-choose tools — use the named tool list for the chosen path.
+
+- **Path A — chrome-devtools-mcp (preferred).** Probe: `performance_start_trace` exists. Native phase breakdowns, no PerformanceObserver scripts.
+- **Path B — claude-in-chrome (fallback).** Probe: `javascript_tool` and `navigate` exist on MCP server `claude-in-chrome`. Same evidence shape; timing captured via PerformanceObserver scripts injected through `javascript_tool`. Print this warning at the start of the trace:
+
+  ```
+  ⚠️ Using claude-in-chrome fallback. For native phase breakdowns and CPU/network throttling, install chrome-devtools-mcp:
+     claude mcp add chrome-devtools npx chrome-devtools-mcp@latest
+  ```
+
+- **Neither available.** Return early with `lab_unavailable: true`. The orchestrator handles the RUM-only fallback.
 
 ---
 
@@ -160,11 +190,51 @@ In the Performance panel, look for red "Layout Shift" markers in the Experience 
 
 ## Evidence Capture
 
-Collect data and screenshots using Playwright MCP tools. These feed into the report template's SVG renderers and filmstrip section.
+Both paths feed the same downstream artifacts: a `waterfallData` array, filmstrip frames, INP timeline JSON. Report templates do not change between paths.
 
-### Network waterfall data (for SVG waterfall in report)
-1. Run `browser_network_requests` to get all HTTP requests with timing.
-2. Run `browser_evaluate` with this script to get per-resource timing breakdown:
+### Path A — chrome-devtools-mcp (preferred)
+
+Tools used (verbatim, all from MCP server `chrome-devtools`): `performance_start_trace`, `performance_stop_trace`, `performance_analyze_insight`, `list_network_requests`, `get_network_request`, `take_screenshot`, `click`, `fill`, `wait_for`, `emulate_cpu`, `emulate_network`, `resize_page`.
+
+**Throttling (mobile):** Before tracing, call `emulate_cpu` with a `4x` slowdown and `emulate_network` with `Fast 3G`. Use `resize_page` for the mobile viewport. For desktop, skip throttling.
+
+**Trace + phase breakdown:**
+1. Call `performance_start_trace` with `{ reload: true, autoStop: true }`. This navigates to the target, reloads with throttling applied, records the trace, and stops automatically when the page is idle. The response includes insights with native LCP / FCP / CLS phase breakdowns.
+2. For drill-downs, call `performance_analyze_insight` with the relevant insight name (`LCPBreakdown`, `RenderBlocking`, `CLSCulprits`, `DocumentLatency`, etc.) — returns the phase share and contributing resources without manual math.
+
+**Network waterfall (for SVG waterfall in report):**
+1. Call `list_network_requests` to enumerate resources (paginate as needed; the report needs the top 15-20 by start time).
+2. For specific resources of interest, call `get_network_request` with the URL to get the full timing breakdown.
+3. Map response fields onto the report's `waterfallData` shape: `{ name, start, dns, connect, tls, ttfb, download, size, isLcp }`. Identify the LCP resource from the trace insights and set `isLcp: true`. Keep only the top 15-20 by start time.
+
+**Filmstrip:**
+1. Call `take_screenshot` at four moments: immediately after navigation, at FCP, at LCP, and at load+2s. Use the trace's timing markers to know when, or `wait_for` between screenshots. The trace's `reload: true` already navigates — no separate `navigate_page` call needed.
+2. Encode each screenshot as a base64 data URI for the report template's filmstrip frames.
+
+**INP interaction timeline:**
+1. After page load, call `performance_start_trace` (without `reload`).
+2. Trigger the interaction: `click` with the `inpel` selector, or `fill` for input events.
+3. Call `performance_stop_trace`.
+4. Call `performance_analyze_insight` with the relevant interaction insight to get input delay / processing / presentation breakdown. No manual `PerformanceObserver` needed.
+
+**Element screenshot:** Call `take_screenshot` with the problem element scrolled into view.
+
+### Path B — claude-in-chrome (fallback)
+
+Print the degradation warning at the start of the trace:
+```
+⚠️ Using claude-in-chrome fallback. For native phase breakdowns and CPU/network throttling, install chrome-devtools-mcp:
+   claude mcp add chrome-devtools npx chrome-devtools-mcp@latest
+```
+
+Tools used (verbatim, all from MCP server `claude-in-chrome`): `navigate`, `javascript_tool`, `computer` (action `screenshot`), `read_network_requests`, `read_console_messages`, `find`, `resize_window`.
+
+**Throttling note:** claude-in-chrome cannot throttle CPU or network. Only viewport sizing is available via `resize_window`. Lab timing on this path will be optimistic vs real users — interpret the trace for STRUCTURE (which resources, in which order, blocking what), not timing. RUM remains the source of truth for timing.
+
+**Network waterfall (for SVG waterfall in report):**
+1. Call `navigate` with the target URL.
+2. Call `read_network_requests` to get all HTTP requests with timing.
+3. Call `javascript_tool` with this script to get per-resource timing breakdown:
    ```js
    JSON.stringify(performance.getEntriesByType('resource').map(e => ({
      name: e.name.split('/').pop().split('?')[0] || e.name,
@@ -178,7 +248,7 @@ Collect data and screenshots using Playwright MCP tools. These feed into the rep
      isLcp: false
    })))
    ```
-3. Also get navigation timing for the document itself:
+4. Also call `javascript_tool` for the document's navigation timing:
    ```js
    JSON.stringify((function(n) { return {
      name: 'document', start: 0,
@@ -190,39 +260,39 @@ Collect data and screenshots using Playwright MCP tools. These feed into the rep
      size: 0, isLcp: false
    }; })(performance.getEntriesByType('navigation')[0]))
    ```
-4. Get the LCP time and resource URL:
+5. Call `javascript_tool` for the LCP time and resource URL:
    ```js
    JSON.stringify(await new Promise(r => new PerformanceObserver(l => {
      var entries = l.getEntries(); var last = entries[entries.length - 1];
      r({ time: Math.round(last.startTime), url: last.url || '', element: last.element?.tagName });
    }).observe({ type: 'largest-contentful-paint', buffered: true })))
    ```
-5. When populating the report template, replace the `waterfallData` array and `lcpTime` value inside the `WATERFALL_DATA_START` / `WATERFALL_DATA_END` markers with real data. Set `isLcp: true` on the entry matching the LCP resource URL. Keep only the top 15-20 resources by start time to avoid visual clutter.
+6. Set `isLcp: true` on the entry matching the LCP resource URL. Keep top 15-20 by start time.
 
-### Page filmstrip (real page screenshots)
-1. Use `browser_navigate` to go to the target URL.
-2. Take `browser_take_screenshot` immediately — this captures the blank/loading state. Label: "0.0s".
-3. Run `browser_evaluate` to wait for first contentful paint:
+**Filmstrip:**
+1. Call `navigate` to the target URL.
+2. Call `computer` with action `screenshot` immediately — captures the blank/loading state. Label "0.0s".
+3. Call `javascript_tool` to wait for FCP and return its time:
    ```js
    await new Promise(r => new PerformanceObserver(l => r()).observe({ type: 'paint', buffered: true }));
    Math.round(performance.getEntriesByType('paint').find(e => e.name === 'first-contentful-paint')?.startTime || 0)
    ```
-   Then take `browser_take_screenshot`. Label with the FCP time.
-4. Run `browser_evaluate` to wait for LCP:
+   Then call `computer` screenshot. Label with the FCP time.
+4. Call `javascript_tool` to wait for LCP:
    ```js
    await new Promise(r => setTimeout(r, 3000));
    Math.round((await new Promise(r => new PerformanceObserver(l => {
      var e = l.getEntries(); r(e[e.length-1].startTime);
    }).observe({ type: 'largest-contentful-paint', buffered: true }))))
    ```
-   Then take `browser_take_screenshot`. Label with the LCP time.
-5. Wait 2 more seconds, take a final `browser_take_screenshot`. Label: "Loaded".
-6. Encode each screenshot as a base64 data URI and insert into the filmstrip frames in the report template.
+   Then `computer` screenshot. Label with the LCP time.
+5. Wait 2 more seconds, take a final `computer` screenshot. Label "Loaded".
+6. Encode each screenshot as a base64 data URI for the report template.
 
-If timed screenshots are not possible (e.g. page loads too fast to capture intermediate states), capture at minimum ONE fully-loaded screenshot and insert it as the single filmstrip frame.
+If timed screenshots are not possible (page loads too fast), capture at minimum ONE fully-loaded screenshot.
 
-### Interaction timeline data (INP only)
-1. Before triggering the interaction, run `browser_evaluate` to set up observers:
+**INP interaction timeline:**
+1. Before triggering, call `javascript_tool` to set up observers:
    ```js
    window.__cwvEvents = []; window.__cwvTasks = [];
    new PerformanceObserver(l => l.getEntries().forEach(e => window.__cwvEvents.push({
@@ -236,15 +306,16 @@ If timed screenshots are not possible (e.g. page loads too fast to capture inter
      start: Math.round(e.startTime), duration: Math.round(e.duration)
    }))).observe({ type: 'longtask', buffered: true });
    ```
-2. Trigger the interaction (click, type, etc.).
-3. Wait 1 second, then collect:
+2. Trigger the interaction. Use `find` with the `inpel` selector or descriptive text to locate the element, then either click via `computer` (mouse coordinates from `find`) or trigger directly with `javascript_tool`: `document.querySelector('SELECTOR').click()`.
+3. Wait 1 second, then call `javascript_tool` to collect:
    ```js
    JSON.stringify({ events: window.__cwvEvents, longTasks: window.__cwvTasks })
    ```
-4. Use this data in the report's INP timeline section to show the input delay / processing / presentation breakdown visually.
+4. Use this data in the report's INP timeline section.
 
-### Element screenshot
-Use `browser_take_screenshot` of the full page (or a specific element if supported) with the identified problem element visible in the viewport. This goes into the report as supporting evidence.
+**Console messages:** Call `read_console_messages` to surface any web-vitals.js debug output, framework warnings, or errors during the trace.
+
+**Element screenshot:** Use `computer` (action `screenshot`) with the problem element scrolled into view.
 
 ## Output format
 
@@ -252,8 +323,9 @@ After completing the trace, print `✅ Confirmed: [one-sentence key finding from
 
 ```
 Chrome trace findings:
+- Path: [chrome-devtools-mcp / claude-in-chrome (fallback)]
 - URL visited: [URL]
-- Emulation: [mobile Fast 3G 4x CPU / desktop no throttling]
+- Emulation: [mobile Fast 3G 4x CPU / desktop no throttling / fallback: viewport only]
 - Bottleneck phase confirmed: [PHASE] — [what Chrome showed]
 - Root cause evidence: [2-3 sentences describing what was seen]
 - Key measurement: [specific timing or gap that proves the bottleneck]

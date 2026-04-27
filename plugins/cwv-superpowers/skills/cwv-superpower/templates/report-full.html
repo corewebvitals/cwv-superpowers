@@ -887,15 +887,16 @@ code {
     <h2 class="section-title">Page Load Filmstrip</h2>
     <div class="filmstrip-container">
       <div class="filmstrip-strip">
-        <!-- Agent: Capture real page screenshots using browser_take_screenshot at key moments
-             during page load. Insert each as:
+        <!-- Agent: Capture real page screenshots using the trace skill's screenshot tool
+             (chrome-devtools-mcp `take_screenshot`, or claude-in-chrome `computer` action
+             `screenshot`) at key moments during page load. Insert each as:
              <div class="filmstrip-frame" onclick="openLightbox(this)">
                <img src="data:image/png;base64,SCREENSHOT_BASE64_HERE" alt="Filmstrip frame at Xs" />
                <span class="frame-time">X.Xs</span>
              </div>
 
-             Capture sequence (use browser_evaluate to detect timing):
-             1. Immediately after browser_navigate (blank/white page)
+             Capture sequence (use the trace skill's chosen path to detect timing):
+             1. Immediately after navigation (blank/white page)
              2. After FCP
              3. After LCP element appears
              4. After load event + 1s (final state)
@@ -955,8 +956,10 @@ code {
       <p><strong>Evidence from lab trace (Chrome):</strong> Chrome trace evidence placeholder.</p>
       <p><strong>Combined:</strong> Combined evidence placeholder.</p>
       <!-- SECTION:WATERFALL_SVG -->
-      <!-- Agent: Replace the waterfallData array below with real data from browser_network_requests
-           + browser_evaluate running performance.getEntriesByType('resource').
+      <!-- Agent: Replace the waterfallData array below with real data from the trace skill's
+           network-listing tool (chrome-devtools-mcp `list_network_requests` / `get_network_request`
+           or claude-in-chrome `read_network_requests` plus `javascript_tool` running
+           performance.getEntriesByType('resource')).
            Each entry: { name: "filename.js", start: 120, dns: 5, connect: 15, tls: 10, ttfb: 80, download: 200, size: 45000, isLcp: false }
            Set isLcp: true on the LCP resource. Set lcpTime to the LCP timestamp in ms. -->
       <div id="waterfall-chart"></div>
@@ -1050,8 +1053,10 @@ code {
       </script>
       <!-- /SECTION:WATERFALL_SVG -->
       <!-- SECTION:INP_TIMELINE -->
-      <!-- Agent: For INP reports only, replace inpData below with real data from browser_evaluate
-           running PerformanceObserver for 'event' entries.
+      <!-- Agent: For INP reports only, replace inpData below with real data from the trace skill's
+           interaction-timeline capture (chrome-devtools-mcp `performance_analyze_insight` on the
+           interaction insight, or claude-in-chrome `javascript_tool` running PerformanceObserver
+           for 'event' entries).
            For LCP/CLS reports, remove this entire SECTION:INP_TIMELINE block. -->
       <!-- /SECTION:INP_TIMELINE -->
     </div>
@@ -1080,7 +1085,7 @@ code {
       <!-- Agent: Replace with verification steps. -->
       <ol class="verify-steps">
         <li>Deploy the change to a staging environment or use a local preview.</li>
-        <li>Run a Lighthouse audit on the affected page and confirm the metric has improved.</li>
+        <li>Re-run a Chrome trace on the affected page and confirm the bottleneck phase share has dropped.</li>
         <li>Monitor CoreDash over the next 3-7 days to verify the p75 value drops below the "good" threshold.</li>
         <li>Check the distribution — confirm the percentage of page loads in the "poor" bucket has decreased.</li>
       </ol>
